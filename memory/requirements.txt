@@ -1,0 +1,8 @@
+langchain
+langchain-google-genai
+faiss-cpu 
+google-generativeai
+python-dotenv
+langchain-community
+sentence-transformers
+torch
