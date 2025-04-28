@@ -45,7 +45,7 @@ This loads the static React frontend.
 A **multi-NPC CLI chatbot** with smart **short-term** and **long-term** memory has been added under `memory/`.
 
 * Built with **LangChain**, **FAISS** vector store, and **medical-aware importance filtering**.
-* Not yet connected to Flask — **but can be run locally for demonstrations**.
+* Not yet connected to Flask — **but can be run locally for testing**.
 
 ### To run memory-based chatbot locally:
 
