@@ -16,15 +16,103 @@
             const [messages, setMessages] = React.useState([]);
             const [input, setInput] = React.useState("");
             const [loading, setLoading] = React.useState(false);
+            const [isRecording, setIsRecording] = React.useState(false);
+            const [transcribing, setTranscribing] = React.useState(false);
+            const [currentEmotion, setCurrentEmotion] = React.useState(null);
+            const [stream, setStream] = React.useState(null);
+            const mediaRecorderRef = React.useRef(null);
+            const audioChunksRef = React.useRef([]);
 
+            // Request microphone permission once when component mounts
+            React.useEffect(() => {
+                const requestMic = async () => {
+                    try {
+                        const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        setStream(micStream);
+                    } catch (error) {
+                        console.error("Error accessing microphone:", error);
+                        alert("Microphone access denied. Please grant permission to use the recording feature.");
+                    }
+                };
+                requestMic();
+            }, []);
+
+            // Start audio recording
+            const startRecording = () => {
+                if (!stream) {
+                    alert("Microphone access is required to record audio.");
+                    return;
+                }
+                mediaRecorderRef.current = new MediaRecorder(stream);
+                mediaRecorderRef.current.ondataavailable = event => {
+                    audioChunksRef.current.push(event.data);
+                };
+                mediaRecorderRef.current.start();
+                setIsRecording(true);
+            };
+
+            // Stop audio recording and return Blob
+            const stopRecording = () => {
+                return new Promise(resolve => {
+                    mediaRecorderRef.current.onstop = () => {
+                        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+                        audioChunksRef.current = [];
+                        resolve(audioBlob);
+                    };
+                    mediaRecorderRef.current.stop();
+                });
+            };
+
+            // Toggle recording state
+            const toggleRecording = async () => {
+                if (isRecording) {
+                    const audioBlob = await stopRecording();
+                    transcribeAudio(audioBlob);
+                    setIsRecording(false);
+                } else {
+                    startRecording();
+                }
+            };
+
+            // Transcribe audio and update input
+            const transcribeAudio = async (audioBlob) => {
+                setTranscribing(true);
+                try {
+                    const formData = new FormData();
+                    formData.append('audio', audioBlob, 'audio.wav');
+                    const res = await fetch('http://localhost:5000/voice_chat?transcribe_only=true', {
+                        method: 'POST',
+                        body: formData,
+                    });
+                    const data = await res.json();
+                    if (data.error) {
+                        console.error("Transcription error:", data.error);
+                        alert("Failed to transcribe audio.");
+                    } else {
+                        setInput(data.transcription);
+                        setCurrentEmotion(data.emotion);
+                    }
+                } catch (error) {
+                    console.error("Error transcribing audio:", error);
+                    alert("Failed to transcribe audio.");
+                } finally {
+                    setTranscribing(false);
+                }
+            };
+
+            // Send text message to /chat endpoint
             const sendMessage = async () => {
-                if (input.trim() === "" || loading) return;
+                if (input.trim() === "" || loading || isRecording || transcribing) return;
                 setLoading(true);
                 try {
+                    const body = { message: input };
+                    if (currentEmotion) {
+                        body.emotion = currentEmotion;
+                    }
                     const res = await fetch('http://localhost:5000/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ message: input }),
+                        body: JSON.stringify(body),
                     });
                     const data = await res.json();
                     setMessages(prev => [
@@ -33,13 +121,16 @@
                         { speaker: data.response.split(": ")[0], text: data.response.split(": ")[1] }
                     ]);
                     setInput("");
+                    setCurrentEmotion(null); // Reset emotion after sending
                 } catch (error) {
-                    console.error("Error:", error);
+                    console.error("Error sending text message:", error);
+                    alert("Failed to send message.");
                 } finally {
                     setLoading(false);
                 }
             };
 
+            // Handle idle NPC responses from /idle endpoint
             const handleIdle = async () => {
                 try {
                     const res = await fetch('http://localhost:5000/idle');
@@ -54,14 +145,15 @@
                         ]);
                     }
                 } catch (error) {
-                    console.error("Error:", error);
+                    console.error("Error during idle check:", error);
                 }
             };
 
+            // Set up idle check interval every 10 seconds
             React.useEffect(() => {
                 const interval = setInterval(() => {
                     handleIdle();
-                }, 10000); // Check every 10 seconds
+                }, 10000);
                 return () => clearInterval(interval);
             }, []);
 
@@ -77,22 +169,29 @@
                         ))}
                     </div>
                     <div className="p-4 border-t bg-white">
-                        <div className="flex">
+                        <div className="flex space-x-2">
                             <input
                                 type="text"
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyPress={(e) => e.key === "Enter" && sendMessage()}
-                                className="flex-1 p-2 border rounded-l focus:outline-none"
+                                className="flex-1 p-2 border rounded focus:outline-none"
                                 placeholder="Type your message..."
-                                disabled={loading}
+                                disabled={loading || isRecording || transcribing}
                             />
                             <button
                                 onClick={sendMessage}
-                                className="p-2 bg-blue-500 text-white rounded-r hover:bg-blue-600 disabled:bg-gray-400"
-                                disabled={loading || input.trim() === ""}
+                                className="p-2 bg-blue-500 text-white hover:bg-blue-600 disabled:bg-gray-400"
+                                disabled={loading || isRecording || transcribing || input.trim() === ""}
                             >
                                 {loading ? "Sending..." : "Send"}
+                            </button>
+                            <button
+                                onClick={toggleRecording}
+                                className={`p-2 ${isRecording ? 'bg-red-500' : 'bg-green-500'} text-white hover:bg-opacity-80`}
+                                disabled={loading || transcribing || !stream}
+                            >
+                                {isRecording ? "Stop Recording" : "Start Recording"}
                             </button>
                         </div>
                     </div>
