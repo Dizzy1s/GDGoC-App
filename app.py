@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from sentence_transformers import util
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import re
 
 # Load environment variables
 load_dotenv()
@@ -171,6 +172,7 @@ class NPC:
         self.interest_vecs = self._encode_interests()
         self.relationships = {}
         self.last_spoken = -1
+        self.emotional_state = 5
 
     def _extract_interests_from_data(self):
         interests = []
@@ -191,6 +193,40 @@ class NPC:
             )
             embeddings.append(response["embedding"])
         return embeddings
+    def analyze_emotion(self, input):
+        prompt = f"""
+        Analyze the emotional tone based on the latest user input, considering the previous emotional state and emotional history.
+        Respond ONLY in JSON format like this:
+        {{
+            "value": int (1-10),            // Emotional intensity (sad to joy)
+            "description": string,          // Short label, e.g., "anxious", "calm"
+            "reason": string                // Brief explanation for the detected emotion
+        }}
+
+        Latest Sentence:
+        "{input}"
+        """
+
+        try:
+            raw_response = gemini_model.generate_content(prompt).text
+            json_match = re.search(r"\{.*\}", raw_response, re.DOTALL)
+            if not json_match:
+                raise ValueError("No JSON found in response.")
+            emotions = json.loads(json_match.group())
+            value = max(1, min(10, int(emotions["value"])))
+            description = emotions.get("description", "unknown").strip()
+            reason = emotions.get("reason", "No reason provided.").strip()
+            self.emotional_state = value
+            emotion_state = {
+                "value": value,
+                "description": description,
+                "reason": reason,
+            }
+            print("Emotion state of ", self.name, ":", emotion_state)
+        except Exception as e:
+            print("⚠️ Emotion parsing failed:", e)
+        return
+
 
 # NPC Prompt Template
 npc_prompt_template = """
@@ -353,6 +389,8 @@ Recent message: "{recent_text}"
 Conversation history:
 {last_lines}
 Respond as {speaker.name} with your personality and interests. Engage naturally with the user or others if relevant.
+
+Should the NPC update their emotional state based on the recent message? Reply only with 'yes' or 'no' on a new line after 'EMOTION_UPDATE:'
 """
 
 # Audio Processing Functions
@@ -386,6 +424,9 @@ def handle_user_message(user_message, emotion=None):
     if speaker:
         prompt = build_prompt(speaker, user_message, conversation, "User")
         response = gemini_model.generate_content(prompt).text.strip()
+        match = re.search(r'EMOTION_UPDATE:\s*(yes|no)', response, re.IGNORECASE)
+        if match and match.group(1).strip().lower() == 'yes':
+            speaker.analyze_emotion(user_message)
         conversation.append({"speaker": speaker.name, "text": response})
         speaker.last_spoken = current_turn
         update_relationship(speaker, "User", user_message)
