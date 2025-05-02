@@ -1,4 +1,4 @@
-pip install google-generativeai python-dotenv sentence-transformers
+#!pip install google-generativeai python-dotenv sentence-transformers
 
 import os
 import random
