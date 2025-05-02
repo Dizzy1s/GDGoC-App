@@ -44,5 +44,69 @@
       "content": "Hello there. Last we spoke, you were telling me you enjoy going to the gym. I remember saying that I found that inspiring, given my own struggles with anxiety sometimes keeping me from embracing physical challenges. I hope you've been able to keep up with it!",
       "timestamp": 1746213258.167881
     }
+  ],
+  "Rhys": [
+    {
+      "sender": "user",
+      "content": "hi rys ",
+      "timestamp": 1746217270.403569
+    },
+    {
+      "sender": "Rhys",
+      "content": "Ah, welcome back, my friend! Last we spoke, we were waxing poetic about the glories of flowers and saunas! You see, a feast for the senses, indeed! Are you ready to continue this joyful dance of a conversation?\n\nEMOTION_UPDATE: no",
+      "timestamp": 1746217273.19078
+    },
+    {
+      "sender": "user",
+      "content": "i like to go to the suana of monday and wednesday ",
+      "timestamp": 1746217326.86206
+    },
+    {
+      "sender": "Rhys",
+      "content": "Ah, Monday and Wednesday, eh? Splendid! A dedicated devotee of the sauna's embrace, I see! Tell me, does the steam whisper secrets to you on those days? Does it inspire you to compose poetry, perhaps, or to spontaneously break into a Bollywood dance? One never knows what delightful madness a good sweat can unleash!\n\nEMOTION_UPDATE: no",
+      "timestamp": 1746217330.186092
+    },
+    {
+      "sender": "user",
+      "content": "the",
+      "timestamp": 1746217379.615631
+    },
+    {
+      "sender": "Rhys",
+      "content": "The...the very essence of existence, wouldn't you agree? Ha! But in the context of saunas, I'm afraid my expertise lies more in the realm of turbans than thermostats. Perhaps Alex has a more scientific approach to these things!\n\nEMOTION_UPDATE: no",
+      "timestamp": 1746217381.901235
+    }
+  ],
+  "Alex": [
+    {
+      "sender": "user",
+      "content": "hi, what did we talk about last time ",
+      "timestamp": 1746217254.780618
+    },
+    {
+      "sender": "Alex",
+      "content": "Hey, flowers and saunas, that's a nice combo! I can see how relaxing that would be. Do you have any favorite flowers?\n\nEMOTION_UPDATE: yes",
+      "timestamp": 1746217257.617742
+    },
+    {
+      "sender": "user",
+      "content": "excellent ",
+      "timestamp": 1746217287.093764
+    },
+    {
+      "sender": "Alex",
+      "content": "That's great! Always feels good to get some positive feedback. Did you have anything specific in mind regarding our previous conversation?\nEMOTION_UPDATE: no",
+      "timestamp": 1746217289.295213
+    },
+    {
+      "sender": "user",
+      "content": "hi, what day is best to go to the suana ",
+      "timestamp": 1746217349.039538
+    },
+    {
+      "sender": "Alex",
+      "content": "Well, if you enjoy Monday and Wednesday, those sound like the best days for you. Is there something specific you're looking for in terms of a \"best\" day?\nEMOTION_UPDATE: no",
+      "timestamp": 1746217351.260095
+    }
   ]
 }
