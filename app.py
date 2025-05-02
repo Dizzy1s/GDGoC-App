@@ -1,16 +1,17 @@
-import os
-import random
-import json
-import time
-import tempfile
-import pyaudio
-import wave
+import os, random, json, time, tempfile, re
+import pyaudio, wave
 import google.generativeai as genai
 from dotenv import load_dotenv
 from sentence_transformers import util
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import re
+
+from memory.short_term   import add_to_short_term
+from memory.long_term    import init_vectorstore, add_to_long_term, search_long_term
+from memory.importance import is_important, llm_is_important  # if you’ll use the LLM fallback
+from memory.utils_memory import Message
+ 
 
 # Load environment variables
 load_dotenv()
@@ -260,6 +261,9 @@ for npc in npc_list:
                 "trust": round(random.uniform(0.4, 0.8), 2)
             }
 
+# ── Memory index on disk ----------------------------------------------------
+init_vectorstore()          # creates / loads faiss_memory_index/
+
 # Chat State
 conversation = []
 current_turn = 0
@@ -412,15 +416,61 @@ def get_emotion(audio_path):
     response = gemini_model.generate_content([uploaded_file, prompt])
     return response.text.strip().lower()
 
-def handle_user_message(user_message, emotion=None):
+# ----------------------------- Core handler ---------------------------------
+def handle_user_message(user_message: str, emotion: str | None = None) -> str:
     global conversation, current_turn, user_idle_turns, last_speaker
     conversation.append({"speaker": "User", "text": user_message, "emotion": emotion})
     user_idle_turns = 0
-    
-    for npc in npc_list:
-        update_relationship(npc, "User", user_message, emotion)
-    
+
+    # ── Memory: USER text ----------------------------------------------------
+    if is_important(user_message):
+        # store under a generic 'User' bucket so every NPC can recall it
+        add_to_long_term("User", [user_message])
+
+    # pick responder ---------------------------------------------------------
     speaker = select_speaker("User", user_message)
+
+    if not speaker:
+        return "No NPC responded."
+
+    # short‑term cache for this NPC
+    add_to_short_term(speaker.name, Message("user", user_message))
+
+    # ── Memory recall --------------------------------------------------------
+    hits = search_long_term(speaker.name, user_message, k=3)
+    recall_block = ""
+    if hits:
+        recall_block = "\nRelevant memories:\n" + "\n".join(f"• {m}" for m in hits)
+
+    prompt = build_prompt(
+        speaker,
+        user_message + recall_block,
+        conversation,
+        "User"
+    )
+
+    response = gemini_model.generate_content(prompt).text.strip()
+
+    # NPC emotion update hook (existing logic)
+    if re.search(r'EMOTION_UPDATE:\s*yes', response, re.IGNORECASE):
+        speaker.analyze_emotion(user_message)
+
+    # record & relationships --------------------------------------------------
+    conversation.append({"speaker": speaker.name, "text": response})
+    speaker.last_spoken = current_turn
+    update_relationship(speaker, "User", user_message)
+    update_npc_to_npc_relationships(speaker.name, response)
+    last_speaker = speaker.name
+    current_turn += 1
+
+    # ── Memory: NPC reply ----------------------------------------------------
+    add_to_short_term(speaker.name, Message(speaker.name, response))
+    if is_important(user_message):
+        add_to_long_term(speaker.name, [response])
+
+    return f"{speaker.name}: {response}"
+
+
     if speaker:
         prompt = build_prompt(speaker, user_message, conversation, "User")
         response = gemini_model.generate_content(prompt).text.strip()

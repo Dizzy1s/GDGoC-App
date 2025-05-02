@@ -1,0 +1,26 @@
+{
+  "Leo": [
+    {
+      "sender": "user",
+      "content": "hi riya, I’ve been having chest pain and shortness of breath lately",
+      "timestamp": 1745869802.495165
+    },
+    {
+      "sender": "Leo",
+      "content": "Oh my gosh! Chest pain and shortness of breath?! That doesn't sound good *at all*! You gotta see a doctor about that, seriously! Like, ASAP! Have you told anyone else? Are you okay right now? Maybe we should get you to a hospital or something!",
+      "timestamp": 1745869812.088023
+    }
+  ],
+  "Raya": [
+    {
+      "sender": "user",
+      "content": "hi, raya, I’ve been having chest pain and shortness of breath lately",
+      "timestamp": 1745869830.687706
+    },
+    {
+      "sender": "Raya",
+      "content": "Oh my, that sounds really concerning. Chest pain and shortness of breath are definitely things you shouldn't ignore. Have you spoken to Dr. Hale about this yet? It's really important to get those symptoms checked out as soon as possible. Is there anything I can do to help you feel more comfortable right now? Perhaps we could try a quick grounding exercise to help calm your breathing while you consider what to do next?",
+      "timestamp": 1745869835.019131
+    }
+  ]
+}

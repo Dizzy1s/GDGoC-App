@@ -1,4 +1,4 @@
-app.py is the main flask backend 
+app.py is the main Flask backend
 
 Terminal:
 
@@ -17,3 +17,9 @@ python -m http.server
 Access:
 
 http://localhost:8000/
+
+Notes (memory-integration branch):
+
+- Adds long-term and short-term memory with FAISS vector search.
+- Important facts and health notes are saved and recalled in conversations.
+- Same backend works with both voice and text routes.
