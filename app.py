@@ -11,7 +11,6 @@ from memory.short_term   import add_to_short_term
 from memory.long_term    import init_vectorstore, add_to_long_term, search_long_term
 from memory.importance import is_important, llm_is_important  # if you’ll use the LLM fallback
 from memory.utils_memory import Message
- 
 
 # Load environment variables
 load_dotenv()
@@ -429,7 +428,6 @@ def handle_user_message(user_message: str, emotion: str | None = None) -> str:
 
     # pick responder ---------------------------------------------------------
     speaker = select_speaker("User", user_message)
-
     if not speaker:
         return "No NPC responded."
 
@@ -470,21 +468,6 @@ def handle_user_message(user_message: str, emotion: str | None = None) -> str:
 
     return f"{speaker.name}: {response}"
 
-
-    if speaker:
-        prompt = build_prompt(speaker, user_message, conversation, "User")
-        response = gemini_model.generate_content(prompt).text.strip()
-        match = re.search(r'EMOTION_UPDATE:\s*(yes|no)', response, re.IGNORECASE)
-        if match and match.group(1).strip().lower() == 'yes':
-            speaker.analyze_emotion(user_message)
-        conversation.append({"speaker": speaker.name, "text": response})
-        speaker.last_spoken = current_turn
-        update_relationship(speaker, "User", user_message)
-        update_npc_to_npc_relationships(speaker.name, response)
-        last_speaker = speaker.name
-        current_turn += 1
-        return f"{speaker.name}: {response}"
-    return "No NPC responded."
 
 # Flask App Setup
 app = Flask(__name__)
