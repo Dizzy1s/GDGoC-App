@@ -1,0 +1,48 @@
+{
+  "Ethan": [
+    {
+      "sender": "user",
+      "content": "Hi",
+      "timestamp": 1746213186.077511
+    },
+    {
+      "sender": "user",
+      "content": "yes, i am and i love gym ",
+      "timestamp": 1746213206.689538
+    },
+    {
+      "sender": "user",
+      "content": "good, now exit ",
+      "timestamp": 1746213227.215292
+    },
+    {
+      "sender": "user",
+      "content": "hi, what was i last talking about ",
+      "timestamp": 1746213255.173211
+    }
+  ],
+  "Aisha": [
+    {
+      "sender": "Aisha",
+      "content": "Oh, hello there. It's nice to... well, it's nice to be greeted. I sometimes find myself hesitating at the start of things, a bit like being backstage right before a performance. My mind starts to race, even when there's nothing to be anxious about. So, just saying \"hi\" back feels like a small victory. I hope you're having a good day so far.",
+      "timestamp": 1746213190.263116
+    },
+    {
+      "sender": "Aisha",
+      "content": "Oh... alright. If you'd like me to leave, I understand. It's been... nice talking with you, even if it was brief. I hope you have a wonderful rest of your day, and perhaps, if you ever wish to chat again, I'll be here. Take care.",
+      "timestamp": 1746213230.405052
+    }
+  ],
+  "James": [
+    {
+      "sender": "James",
+      "content": "That's wonderful! I'm glad you're having a good day and that you enjoy the gym. I can appreciate the dedication and focus it must take. Sometimes, I find myself admiring people who can embrace physical challenges like that. For me, anxiety often keeps me a bit more... grounded. But it's inspiring to hear about things that bring people joy and strength. Keep at it!",
+      "timestamp": 1746213210.394333
+    },
+    {
+      "sender": "James",
+      "content": "Hello there. Last we spoke, you were telling me you enjoy going to the gym. I remember saying that I found that inspiring, given my own struggles with anxiety sometimes keeping me from embracing physical challenges. I hope you've been able to keep up with it!",
+      "timestamp": 1746213258.167881
+    }
+  ]
+}
