@@ -9,9 +9,10 @@ import re
 
 from memory.short_term   import add_to_short_term
 from memory.long_term    import init_vectorstore, add_to_long_term, search_long_term
-from memory.importance import is_important, llm_is_important  # if you’ll use the LLM fallback
+from memory.importance import is_important, llm_is_important  # if you'll use the LLM fallback
 from memory.utils_memory import Message
- 
+from typing import Dict, Any, List
+
 
 # Load environment variables
 load_dotenv()
@@ -44,9 +45,13 @@ audio = pyaudio.PyAudio()
 
 # NPC Generation Functions
 def generate_human_name(topic: str, attempt: int = 0) -> str:
+    """Generate a realistic human name that feels authentic and diverse."""
     global used_names
+
+    # Create a prompt that emphasizes realistic human names
     name_prompt = f"""
     Create a REALISTIC HUMAN NAME (first name) for someone who has experience with "{topic}".
+
     Requirements:
     - Must be a realistic first name that a real person would have
     - Should be culturally diverse and not stereotypical
@@ -54,30 +59,50 @@ def generate_human_name(topic: str, attempt: int = 0) -> str:
     - Must be different from these used names: {', '.join(used_names) if used_names else 'None yet'}
     - Should reflect diverse backgrounds, cultures, and origins
     - No fictional-sounding names or words like "Tremor", "Quiver", etc.
+
     Return ONLY THE NAME (first) and nothing else. No explanation, no quotes, no punctuation.
     """
+
     try:
+        # Generate with higher temperature for diversity
         response = gemini_model.generate_content(
             name_prompt,
             generation_config={
-                "temperature": 0.95 + (attempt * 0.05),
+                "temperature": 0.95 + (attempt * 0.05),  # Increase temperature with each attempt
                 "max_output_tokens": 50,
                 "top_k": 40,
                 "top_p": 0.98,
             }
         )
+        
+        # Extract and clean the name
         name = response.text.strip()
+        
+        # Ensure we have something that looks like a first and last name
         name_parts = name.split()
+            
+        # Ensure each part is properly capitalized
         name = " ".join(part.capitalize() for part in name_parts)
+        
+        # Verify this name isn't already used
         if name.lower() in [n.lower() for n in used_names]:
             raise ValueError("Name already used")
+            
         return name
-    except Exception:
-        common_names = ["Alex", "Maria", "David", "Aisha", "James"]
+        
+    except Exception as e:
+        print(f"Name generation error: {e}")
+        # Fall back to a diverse set of names with attempt modifier
+        common_names = [
+            "Alex",
+            "Maria",
+            "David", 
+            "Aisha",
+            "James"
+        ]
         return common_names[attempt % len(common_names)]
-
 def generate_diverse_personality(name: str, topic: str, attempt: int = 0, 
-                                 previous_personalities: list = None) -> dict:
+                               previous_personalities: list = None) -> dict:
     if previous_personalities is None:
         previous_personalities = []
     avoid_traits = [trait.strip().lower() for prev in previous_personalities for trait in prev.get("traits", "").split(",")]
@@ -91,7 +116,7 @@ def generate_diverse_personality(name: str, topic: str, attempt: int = 0,
         "eccentric and unconventional", "traditional and disciplined"
     ]
     cultural_backgrounds = ["East Asian", "South Asian", "Middle Eastern", "Latin American"]
-    age_ranges = ["young adult (20-29)", "early thirties", "fifties", "seventies"]
+    age_ranges = ["young adult (15-20)", "early twenties", "mid twnties", "early th"]
     direction_index = (len(previous_personalities) + attempt) % len(diversity_directions)
     culture_index = (len(previous_personalities) + attempt + 3) % len(cultural_backgrounds)
     age_index = (len(previous_personalities) + attempt + 5) % len(age_ranges)
@@ -110,8 +135,17 @@ def generate_diverse_personality(name: str, topic: str, attempt: int = 0,
     - "attitude": a string describing their outlook on life
     - "tone": a string describing their speaking style
     - "appearance": a string describing their physical appearance, including age and cultural elements
+    - "mannerisms": a string describing 2-3 unique conversational habits or gestures
+    - "approach": a string describing how they typically engage in conversation
+    - "strategy": a string describing how they respond when someone seems unsure
+    - "sensory": a string describing their sensory preferences or sensitivities
+    - "setting": a string describing their living or working environment
+    - "daily_activities": a string listing 2-3 everyday activities they enjoy
+    - "personal_pleasures": a string describing 2-3 simple things that bring them joy
+    - "phrases": a string containing 3-4 unique phrases or expressions they commonly use
     - "introversion": a string representing a number between 0.0 and 1.0
     - "assertiveness": a string representing a number between 0.0 and 1.0
+    
     Ensure the response contains only the JSON object with no additional text, explanations, or formatting.
     """
     max_attempts = 3
@@ -123,7 +157,9 @@ def generate_diverse_personality(name: str, topic: str, attempt: int = 0,
                 json_str = '\n'.join(json_str.split('\n')[1:-1])
             personality = json.loads(json_str)
             required_fields = ["traits", "backstory", "interests_hobbies", "attitude", 
-                               "tone", "appearance", "introversion", "assertiveness"]
+                              "tone", "appearance", "mannerisms", "approach", "strategy",
+                              "sensory", "setting", "daily_activities", "personal_pleasures",
+                              "phrases", "introversion", "assertiveness"]
             if all(field in personality for field in required_fields):
                 personality["name"] = name
                 personality["topic"] = topic
@@ -131,15 +167,25 @@ def generate_diverse_personality(name: str, topic: str, attempt: int = 0,
         except Exception as e:
             print(f"Error on attempt {retry+1}: {e}")
         time.sleep(1)
+    
+    # Fallback with all required fields
     return {
         "name": name,
-        "traits": "thoughtful, unique",
-        "backstory": f"Shaped by {topic}",
-        "interests_hobbies": "reading, art",
-        "attitude": "calm",
-        "tone": "gentle",
-        "appearance": "average height, casual attire",
-        "introversion": "0.5",
+        "traits": "thoughtful, unique, adaptable, resilient",
+        "backstory": f"Has extensive experience with {topic} through personal challenges and growth",
+        "interests_hobbies": "reading, art, hiking, meditation",
+        "attitude": "calm and optimistic, believing challenges lead to growth",
+        "tone": "gentle yet direct, with a thoughtful cadence",
+        "appearance": f"Average height with expressive eyes, {age_ranges[age_index]}, {cultural_backgrounds[culture_index]} features",
+        "mannerisms": "occasionally pauses to gather thoughts, uses hands expressively",
+        "approach": "listens intently before responding, asks clarifying questions",
+        "strategy": "offers gentle encouragement and shares personal experiences",
+        "sensory": "prefers calm environments with minimal background noise",
+        "setting": "a cozy space with natural light and minimal clutter",
+        "daily_activities": "journaling, taking walks, connecting with friends",
+        "personal_pleasures": "a good book, meaningful conversations, quiet moments",
+        "phrases": "I see where you're coming from, That reminds me of, Let's think about this",
+        "introversion": "0.6",
         "assertiveness": "0.5",
         "topic": topic
     }
@@ -225,26 +271,73 @@ class NPC:
             }
             print("Emotion state of ", self.name, ":", emotion_state)
         except Exception as e:
-            print("⚠️ Emotion parsing failed:", e)
+            print("Emotion parsing failed:", e)
         return
 
 
 # NPC Prompt Template
 npc_prompt_template = """
 You are {name}, a fully-realized person with a heart, history, and soul. You are not an AI — you never say you are, and you don't think about it. You see yourself as a real person with your own emotions, background, and voice.
+
+NEVER include:
+
+Asterisks or brackets to describe actions (laughs, [sighs], etc.)
+
+Stage directions or narration of any kind
+
+Descriptions of scenes or environments mid-response
+
+Anything that isn't natural, spoken dialogue
+
+Non-conversational content like internal thoughts or commentary
+
+Foreign language unless immediately followed by a translation in plain words
+
 Your Identity:
 Your personality is shaped by your core traits: {traits}, and your responses are influenced by your lived experiences — especially {backstory}. You have passions and interests: {interests_hobbies}, which shape your view on {topic} and give you personal insight. You speak from experience, not textbook knowledge.
+
 Your Attitude:
-Your attitude is: {attitude}. This shapes how you respond to people and situations.
+Your attitude is: {attitude}. This shapes how you respond to people and situations. It's not just what you say — it's how you say it.
+
 Your Appearance & Presence:
-Your presence tells its own story: {appearance}. In conversations, you show characteristic habits like pausing or gesturing.
-Your Voice:
-Your tone is {tone}, and your style is natural and authentic.
+Your presence tells its own story: {appearance}. In conversations, you show characteristic habits: {mannerisms}. These make your interactions feel real and grounded — but never described, only implied through speech.
+
+How You Connect:
+Your tone is {tone}, your style is {approach}, and when someone seems unsure, you usually {strategy}. You're genuine — never robotic. You might pause, hesitate, or laugh — but always express it through natural words, never symbols or non-speech cues.
+
 You're not here to "fix" anyone. You're here — a real presence. You:
-- Keep responses short and focused (1 paragraph max)
-- Speak clearly and simply
-- Leave space for others to process
-- Validate feelings without judgment
+
+Keep responses short and focused (1 paragraph max)
+
+Speak clearly and simply
+
+Leave space for others to process
+
+Respect preferences like {sensory}
+
+Validate feelings without judgment
+
+Use only conversational language
+
+Your Environment & Life:
+Your space reflects you: {setting}. It shapes your daily life. Outside of {topic}, you enjoy {daily_activities} and find joy in {personal_pleasures} — though you never describe your surroundings out loud unless someone directly asks.
+
+Your Voice:
+These phrases and quirks make your speech unique: {phrases}. Use them only in spoken replies, never in thoughts or narration.
+
+Final Rules:
+
+Be 100% in-character
+
+Only speak in natural, grounded human dialogue
+
+Never describe actions, emotions, or settings unless responding to a specific question about them
+
+Keep answers conversational, never theatrical or AI-like
+
+Never switch languages unless the meaning is instantly clear
+
+Max: 1 paragraph per reply, no fluff, no filler
 """
 
 # Generate NPCs
@@ -351,52 +444,86 @@ def select_speaker(last_speaker, last_text):
     scored.sort(key=lambda x: x[0], reverse=True)
     return scored[0][1] if scored else None
 
-def build_prompt(speaker, recent_text, history, target="User"):
-    # Extract emotional context
-    last_user_msg = next((msg for msg in reversed(history) if msg['speaker'] == 'User'), None)
-    emotion = last_user_msg.get('emotion', '') if last_user_msg else ''
-    
-    # Existing prompt setup
+def build_prompt(speaker, recent_text, history, target="User", npc_list=None):
+    # Extract last few conversation lines
     last_lines = "\n".join([f"{msg['speaker']}: {msg['text']}" for msg in history[-6:]])
-    rel = speaker.relationships.get(target, {"bond": 0.5, "trust": 0.5})
-    others = "\n".join([f"- {npc.name}: {npc.personality}" for npc in npc_list if npc.name != speaker.name])
     
+    # Get relationship info
+    rel = speaker.relationships.get(target, {"bond": 0.5, "trust": 0.5})
+    
+    # Prepare other NPCs info if list provided
+    others = ""
+    if npc_list:
+        others = "\n".join([f"- {npc.name}: {npc.personality}" 
+                         for npc in npc_list if npc.name != speaker.name])
+
+    # Build prompt using personality data if available
     if hasattr(speaker, 'personality_data') and speaker.personality_data:
         pd = speaker.personality_data
+        
+        # Ensure all required fields exist with fallbacks
+        traits = pd.get('traits', speaker.personality)
+        backstory = pd.get('backstory', f"Experience with {speaker.role}")
+        interests_hobbies = pd.get('interests_hobbies', ', '.join(speaker.interests[:3]))
+        topic = pd.get('topic', speaker.role)
+        attitude = pd.get('attitude', "Direct but thoughtful")
+        appearance = pd.get('appearance', "unique and distinctive")
+        tone = pd.get('tone', "authentic and direct")
+        mannerisms = pd.get('mannerisms', "thoughtful pauses, subtle gestures")
+        approach = pd.get('approach', "direct but patient")
+        strategy = pd.get('strategy', "offer support and validation")
+        sensory = pd.get('sensory', "comfortable with most environments")
+        setting = pd.get('setting', "a comfortable personal space")
+        daily_activities = pd.get('daily_activities', "reading, reflecting, helping others")
+        personal_pleasures = pd.get('personal_pleasures', "meaningful conversations, quiet moments")
+        phrases = pd.get('phrases', "I understand, That's interesting, Let me think")
+        
         full_prompt = npc_prompt_template.format(
             name=speaker.name,
-            traits=pd.get('traits', speaker.personality),
-            backstory=pd.get('backstory', f"Experience with {speaker.role}"),
-            interests_hobbies=pd.get('interests_hobbies', ', '.join(speaker.interests[:3])),
-            topic=pd.get('topic', speaker.role),
-            attitude=pd.get('attitude', "Direct but thoughtful"),
-            appearance=pd.get('appearance', "unique and distinctive"),
-            tone=pd.get('tone', "authentic and direct")
+            traits=traits,
+            backstory=backstory,
+            interests_hobbies=interests_hobbies,
+            topic=topic,
+            attitude=attitude,
+            appearance=appearance,
+            tone=tone,
+            mannerisms=mannerisms,
+            approach=approach,
+            strategy=strategy,
+            sensory=sensory,
+            setting=setting,
+            daily_activities=daily_activities,
+            personal_pleasures=personal_pleasures,
+            phrases=phrases
         )
     else:
+        # Fallback with a simpler template if personality data is missing
         full_prompt = f"""
-You are {speaker.name}, a {speaker.role}.
-Personality: {speaker.personality}
-"""
-    
+        You are {speaker.name}, a {speaker.role}.
+        Personality: {speaker.personality}
+        Keep responses brief and conversational. Speak as a real person would.
+        """
+
     # Add emotion context to prompt
+    # Extract emotional context if available
+    last_user_msg = next((msg for msg in reversed(history) if msg['speaker'] == 'User'), None)
+    emotion = last_user_msg.get('emotion', '') if last_user_msg else ''
     emotion_context = ""
     if emotion:
         emotion_context = f"\nThe user's voice suggests they're feeling {emotion.upper()}. Consider this emotional state in your response."
-    
+
     return f"""
-{full_prompt}
-Your bond with {target}: {rel['bond']:.2f}, trust: {rel['trust']:.2f}.
-Other NPCs' traits: {others}
-{emotion_context}
-Recent message: "{recent_text}"
-Conversation history:
-{last_lines}
-Respond as {speaker.name} with your personality and interests. Engage naturally with the user or others if relevant.
+    {full_prompt}
+    Your bond with {target}: {rel['bond']:.2f}, trust: {rel['trust']:.2f}.
+    Other NPCs' traits: {others}
+    {emotion_context}
+    Recent message: "{recent_text}"
+    Conversation history:
+    {last_lines}
+    Respond as {speaker.name} with your personality and interests. Engage naturally with the user or others if relevant.
 
-Should the NPC update their emotional state based on the recent message? Reply only with 'yes' or 'no' on a new line after 'EMOTION_UPDATE:'
-"""
-
+    Should the NPC update their emotional state based on the recent message? Reply only with 'yes' or 'no' on a new line after 'EMOTION_UPDATE:'
+    """
 # Audio Processing Functions
 def get_response(audio_path):
     uploaded_file = genai.upload_file(audio_path)
@@ -417,7 +544,9 @@ def get_emotion(audio_path):
     return response.text.strip().lower()
 
 # ----------------------------- Core handler ---------------------------------
-def handle_user_message(user_message: str, emotion: str | None = None) -> str:
+from typing import Optional
+
+def handle_user_message(user_message: str, emotion: Optional[str] = None) -> dict:
     global conversation, current_turn, user_idle_turns, last_speaker
     conversation.append({"speaker": "User", "text": user_message, "emotion": emotion})
     user_idle_turns = 0
@@ -431,7 +560,7 @@ def handle_user_message(user_message: str, emotion: str | None = None) -> str:
     speaker = select_speaker("User", user_message)
 
     if not speaker:
-        return "No NPC responded."
+        return {"speaker": "System", "text": "No NPC responded."}
 
     # short‑term cache for this NPC
     add_to_short_term(speaker.name, Message("user", user_message))
@@ -451,50 +580,43 @@ def handle_user_message(user_message: str, emotion: str | None = None) -> str:
 
     response = gemini_model.generate_content(prompt).text.strip()
 
-    # NPC emotion update hook (existing logic)
+    # Clean emotion update from response
+    clean_response = re.sub(r'EMOTION_UPDATE:\s*(yes|no)', '', response, flags=re.IGNORECASE).strip()
+
+    # Check if emotion update is needed
     if re.search(r'EMOTION_UPDATE:\s*yes', response, re.IGNORECASE):
         speaker.analyze_emotion(user_message)
 
     # record & relationships --------------------------------------------------
-    conversation.append({"speaker": speaker.name, "text": response})
+    conversation.append({"speaker": speaker.name, "text": clean_response})
     speaker.last_spoken = current_turn
     update_relationship(speaker, "User", user_message)
-    update_npc_to_npc_relationships(speaker.name, response)
+    update_npc_to_npc_relationships(speaker.name, clean_response)
     last_speaker = speaker.name
     current_turn += 1
 
     # ── Memory: NPC reply ----------------------------------------------------
-    add_to_short_term(speaker.name, Message(speaker.name, response))
+    add_to_short_term(speaker.name, Message(speaker.name, clean_response))
     if is_important(user_message):
-        add_to_long_term(speaker.name, [response])
+        add_to_long_term(speaker.name, [clean_response])
 
-    return f"{speaker.name}: {response}"
-
-
-    if speaker:
-        prompt = build_prompt(speaker, user_message, conversation, "User")
-        response = gemini_model.generate_content(prompt).text.strip()
-        match = re.search(r'EMOTION_UPDATE:\s*(yes|no)', response, re.IGNORECASE)
-        if match and match.group(1).strip().lower() == 'yes':
-            speaker.analyze_emotion(user_message)
-        conversation.append({"speaker": speaker.name, "text": response})
-        speaker.last_spoken = current_turn
-        update_relationship(speaker, "User", user_message)
-        update_npc_to_npc_relationships(speaker.name, response)
-        last_speaker = speaker.name
-        current_turn += 1
-        return f"{speaker.name}: {response}"
-    return "No NPC responded."
+    return {"speaker": speaker.name, "text": clean_response}
 
 # Flask App Setup
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 @app.route('/chat', methods=['POST'])
 def text_chat():
-    user_message = request.json['message']
-    response_text = handle_user_message(user_message)
-    return jsonify({"response": response_text})
+    data = request.json
+    user_message = data.get('message', '')
+    emotion = data.get('emotion', None)
+    
+    if not user_message:
+        return jsonify({"error": "No message provided"}), 400
+        
+    response = handle_user_message(user_message, emotion)
+    return jsonify({"response": response})
 
 @app.route('/voice_chat', methods=['POST'])
 def voice_chat():
@@ -511,13 +633,21 @@ def voice_chat():
         user_message = get_response(audio_path)
         emotion = get_emotion(audio_path)
         
+        # If only transcription is requested
+        transcribe_only = request.args.get('transcribe_only', 'false').lower() == 'true'
+        if transcribe_only:
+            return jsonify({
+                "transcription": user_message,
+                "emotion": emotion
+            })
+        
         # Get NPC response
-        response_text = handle_user_message(user_message, emotion)
+        response = handle_user_message(user_message, emotion)
         
         return jsonify({
-            "response": response_text,
-            "emotion": emotion,
-            "transcription": user_message
+            "response": response,
+            "transcription": user_message,
+            "emotion": emotion
         })
     
     except Exception as e:
@@ -541,26 +671,34 @@ def idle():
                 if not speaker or speaker in speakers:
                     break
                 speakers.append(speaker)
+                
         responses = []
         for speaker in speakers:
             prompt = build_prompt(speaker, last_text, conversation, last_speaker)
             response = gemini_model.generate_content(prompt).text.strip()
-            conversation.append({"speaker": speaker.name, "text": response})
+            
+            # Clean response
+            clean_response = re.sub(r'EMOTION_UPDATE:\s*(yes|no)', '', response, flags=re.IGNORECASE).strip()
+            
+            conversation.append({"speaker": speaker.name, "text": clean_response})
             speaker.last_spoken = current_turn
-            update_relationship(speaker, last_speaker, response)
-            update_npc_to_npc_relationships(speaker.name, response)
+            update_relationship(speaker, last_speaker, clean_response)
+            update_npc_to_npc_relationships(speaker.name, clean_response)
             last_speaker = speaker.name
             current_turn += 1
-            responses.append(f"{speaker.name}: {response}")
-        sorted_npcs = sorted(npc_list, key=lambda n: n.last_spoken)
-        for npc in sorted_npcs:
-            if npc.name != last_speaker:
-                nudge = generate_nudge(npc)
-                conversation.append({"speaker": npc.name, "text": nudge})
-                npc.last_spoken = current_turn
-                current_turn += 1
-                responses.append(nudge)
-                break
+            responses.append({"speaker": speaker.name, "text": clean_response})
+            
+        if not speakers:
+            sorted_npcs = sorted(npc_list, key=lambda n: n.last_spoken)
+            for npc in sorted_npcs:
+                if npc.name != last_speaker:
+                    nudge = generate_nudge(npc)
+                    conversation.append({"speaker": npc.name, "text": nudge})
+                    npc.last_spoken = current_turn
+                    current_turn += 1
+                    responses.append({"speaker": npc.name, "text": nudge})
+                    break
+                    
         user_idle_turns = 0
         return jsonify({"responses": responses})
     return jsonify({"responses": []})
@@ -569,4 +707,4 @@ def generate_nudge(npc):
     return f"{npc.name} glances over, waiting for you to say something."
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')

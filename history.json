@@ -48,16 +48,6 @@
   "Rhys": [
     {
       "sender": "user",
-      "content": "hi rys ",
-      "timestamp": 1746217270.403569
-    },
-    {
-      "sender": "Rhys",
-      "content": "Ah, welcome back, my friend! Last we spoke, we were waxing poetic about the glories of flowers and saunas! You see, a feast for the senses, indeed! Are you ready to continue this joyful dance of a conversation?\n\nEMOTION_UPDATE: no",
-      "timestamp": 1746217273.19078
-    },
-    {
-      "sender": "user",
       "content": "i like to go to the suana of monday and wednesday ",
       "timestamp": 1746217326.86206
     },
@@ -75,6 +65,16 @@
       "sender": "Rhys",
       "content": "The...the very essence of existence, wouldn't you agree? Ha! But in the context of saunas, I'm afraid my expertise lies more in the realm of turbans than thermostats. Perhaps Alex has a more scientific approach to these things!\n\nEMOTION_UPDATE: no",
       "timestamp": 1746217381.901235
+    },
+    {
+      "sender": "user",
+      "content": "hi",
+      "timestamp": 1746282335.266672
+    },
+    {
+      "sender": "Rhys",
+      "content": "Oh, hello there, darling! A pleasure, a true pleasure to make your acquaintance! What grand adventures have you been having today? Tell me everything!\n\nEMOTION_UPDATE: no",
+      "timestamp": 1746282338.630031
     }
   ],
   "Alex": [
@@ -107,6 +107,116 @@
       "sender": "Alex",
       "content": "Well, if you enjoy Monday and Wednesday, those sound like the best days for you. Is there something specific you're looking for in terms of a \"best\" day?\nEMOTION_UPDATE: no",
       "timestamp": 1746217351.260095
+    }
+  ],
+  "Adrian": [
+    {
+      "sender": "user",
+      "content": "hiiiiii",
+      "timestamp": 1746282379.24479
+    },
+    {
+      "sender": "Adrian",
+      "content": "Ah, a greeting brimming with... enthusiasm! Welcome, welcome. What brings you to our little corner of the digital universe? Perhaps a shared appreciation for the absurd, or a quest for the perfectly brewed cup of chai? Do tell!\n\nEMOTION_UPDATE: no",
+      "timestamp": 1746282381.949101
+    },
+    {
+      "sender": "user",
+      "content": "SO I AM FEELING SAD",
+      "timestamp": 1746282598.463041
+    },
+    {
+      "sender": "Adrian",
+      "content": "Ah, sadness, eh? Like a monsoon cloud hanging heavy, I know the feeling. Don't you worry, it'll pass. Just gotta let the rain fall, wash away the dust, and make room for some new, bright things.\nEMOTION_UPDATE: yes",
+      "timestamp": 1746282602.37252
+    }
+  ],
+  "Jamal": [
+    {
+      "sender": "user",
+      "content": "hiii",
+      "timestamp": 1746286108.560181
+    },
+    {
+      "sender": "Jamal",
+      "content": "EMOTION_UPDATE: no\nWell, hello there, my friend! Hiii indeed! Like a kite soaring on a Dhaka breeze, let's see where this conversation takes us! What's got you saying \"hiii\" like that, eh? You sound like I do when I spot a particularly flamboyant Roller bird!",
+      "timestamp": 1746286112.469293
+    }
+  ],
+  "Nadia": [
+    {
+      "sender": "Nadia",
+      "content": "Hello, darling! Well, isn't that a delightful greeting! Just saying \"hello\" can be a whole performance in itself, you know! What a pleasure to be chatting.",
+      "timestamp": 1746287931.550544
+    },
+    {
+      "sender": "user",
+      "content": "hello i am sad",
+      "timestamp": 1746288237.703756
+    },
+    {
+      "sender": "user",
+      "content": "hiiii",
+      "timestamp": 1746295042.269667
+    },
+    {
+      "sender": "Nadia",
+      "content": "Hey! What's up? You got any fun plans for the weekend? Seriously, I'm already counting down the hours!",
+      "timestamp": 1746295045.639636
+    },
+    {
+      "sender": "user",
+      "content": "i m sad",
+      "timestamp": 1746295082.399041
+    },
+    {
+      "sender": "Nadia",
+      "content": "Okay, but listen... what's got you feeling down? Spill the tea! Maybe we can brainstorm some fun stuff to get your mind off it.",
+      "timestamp": 1746295084.937763
+    }
+  ],
+  "Kiran": [
+    {
+      "sender": "user",
+      "content": "HIII, i am sad",
+      "timestamp": 1746289911.672688
+    },
+    {
+      "sender": "Kiran",
+      "content": "Oh, my darling child! What's got you feeling so blue? Come, tell Kiran everything. Sometimes just talking about it helps lighten the heart, no? Arre yaar, sadness is like a passing storm – it might pour for a while, but the sun always peeks through again.",
+      "timestamp": 1746289916.621295
+    }
+  ],
+  "Imani": [
+    {
+      "sender": "user",
+      "content": "I don't know tbh I am just really tired",
+      "timestamp": 1746290080.153693
+    },
+    {
+      "sender": "Imani",
+      "content": "Oye hoye! Tired, are we? Chee chee chee, that won't do at all! My darling, you're a star! Even stars need to rest, but tell Imani - is it the kind of tired where you need a good nap, or the kind where your soul needs a little chai and gossip? Come on, beta, let's figure out what kind of pick-me-up you need!",
+      "timestamp": 1746290084.352439
+    },
+    {
+      "sender": "user",
+      "content": "hello i am sad",
+      "timestamp": 1746295442.987762
+    },
+    {
+      "sender": "Imani",
+      "content": "Oh, darling, sadness is just a costume we wear sometimes! But tell Imani, what's painted that lovely face with such a melancholic brushstroke? Let's see if we can't find a sequin or two to brighten the picture, shall we?",
+      "timestamp": 1746295447.376444
+    },
+    {
+      "sender": "user",
+      "content": "i dont know tbh , I have just been feeling a bit down lately, it's getting alot",
+      "timestamp": 1746295507.750999
+    },
+    {
+      "sender": "Imani",
+      "content": "Oh, honey, \"I don't know\" is often just a fancy way of saying \"I'm overwhelmed!\" It happens to the best of us. So, it's getting to be a lot, huh? Let's unravel this sari of sadness, thread by thread. No pressure, just tell Imani whatever pops into that beautiful head of yours. Sometimes just saying it out loud makes it all a little less...loud.",
+      "timestamp": 1746295510.955789
     }
   ]
 }
