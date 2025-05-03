@@ -4,7 +4,7 @@ Terminal:
 
 dependencies installation:
 
-pip install flask flask-cors google-generativeai python-dotenv sentence-transformers
+pip install flask flask-cors google-generativeai python-dotenv sentence-transformers torch faiss-cpu
 
 run backend:
 
