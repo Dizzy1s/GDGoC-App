@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NPC Conversation System</title>
+    <title>Chat Simulation</title>
     <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50">
+<body>
     <div id="root"></div>
     <script type="text/babel">
         function ChatApp() {
@@ -20,14 +20,8 @@
             const [transcribing, setTranscribing] = React.useState(false);
             const [currentEmotion, setCurrentEmotion] = React.useState(null);
             const [stream, setStream] = React.useState(null);
-            const messageEndRef = React.useRef(null);
             const mediaRecorderRef = React.useRef(null);
             const audioChunksRef = React.useRef([]);
-
-            // Scroll to bottom when messages change
-            React.useEffect(() => {
-                messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
-            }, [messages]);
 
             // Request microphone permission once when component mounts
             React.useEffect(() => {
@@ -41,12 +35,6 @@
                     }
                 };
                 requestMic();
-                
-                // Set up idle check interval
-                const interval = setInterval(() => {
-                    handleIdle();
-                }, 10000);
-                return () => clearInterval(interval);
             }, []);
 
             // Start audio recording
@@ -55,7 +43,6 @@
                     alert("Microphone access is required to record audio.");
                     return;
                 }
-                audioChunksRef.current = [];
                 mediaRecorderRef.current = new MediaRecorder(stream);
                 mediaRecorderRef.current.ondataavailable = event => {
                     audioChunksRef.current.push(event.data);
@@ -79,9 +66,9 @@
             // Toggle recording state
             const toggleRecording = async () => {
                 if (isRecording) {
-                    setIsRecording(false);
                     const audioBlob = await stopRecording();
                     transcribeAudio(audioBlob);
+                    setIsRecording(false);
                 } else {
                     startRecording();
                 }
@@ -116,40 +103,28 @@
             // Send text message to /chat endpoint
             const sendMessage = async () => {
                 if (input.trim() === "" || loading || isRecording || transcribing) return;
-                
-                const userMessage = input;
-                setMessages(prev => [...prev, { speaker: "User", text: userMessage }]);
-                setInput("");
                 setLoading(true);
-                
                 try {
-                    const body = { message: userMessage };
+                    const body = { message: input };
                     if (currentEmotion) {
                         body.emotion = currentEmotion;
                     }
-                    
                     const res = await fetch('http://localhost:5000/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(body),
                     });
-                    
                     const data = await res.json();
-                    if (data.error) {
-                        console.error("Error from server:", data.error);
-                        setMessages(prev => [...prev, { speaker: "System", text: "Error: " + data.error }]);
-                    } else {
-                        const response = data.response;
-                        setMessages(prev => [...prev, { 
-                            speaker: response.speaker, 
-                            text: response.text 
-                        }]);
-                    }
-                    
+                    setMessages(prev => [
+                        ...prev,
+                        { speaker: "User", text: input },
+                        { speaker: data.response.split(": ")[0], text: data.response.split(": ")[1] }
+                    ]);
+                    setInput("");
                     setCurrentEmotion(null); // Reset emotion after sending
                 } catch (error) {
                     console.error("Error sending text message:", error);
-                    setMessages(prev => [...prev, { speaker: "System", text: "Failed to send message. Server might be down." }]);
+                    alert("Failed to send message.");
                 } finally {
                     setLoading(false);
                 }
@@ -160,106 +135,63 @@
                 try {
                     const res = await fetch('http://localhost:5000/idle');
                     const data = await res.json();
-                    
-                    if (data.responses && data.responses.length > 0) {
-                        const newMessages = data.responses.map(response => ({
-                            speaker: response.speaker,
-                            text: response.text
-                        }));
-                        
-                        setMessages(prev => [...prev, ...newMessages]);
+                    if (data.responses.length > 0) {
+                        setMessages(prev => [
+                            ...prev,
+                            ...data.responses.map(res => ({
+                                speaker: res.split(": ")[0],
+                                text: res.split(": ")[1]
+                            }))
+                        ]);
                     }
                 } catch (error) {
                     console.error("Error during idle check:", error);
                 }
             };
 
-            // Format emotion badge if present
-            const EmotionBadge = ({ emotion }) => {
-                if (!emotion) return null;
-                
-                const emotionColors = {
-                    happy: "bg-green-100 text-green-800",
-                    sad: "bg-blue-100 text-blue-800",
-                    angry: "bg-red-100 text-red-800",
-                    fearful: "bg-yellow-100 text-yellow-800",
-                    neutral: "bg-gray-100 text-gray-800",
-                    surprised: "bg-purple-100 text-purple-800",
-                    disgusted: "bg-amber-100 text-amber-800",
-                    calm: "bg-teal-100 text-teal-800"
-                };
-                
-                const colorClass = emotionColors[emotion.toLowerCase()] || "bg-gray-100 text-gray-800";
-                
-                return (
-                    <span className={`text-xs px-2 py-1 rounded-full ${colorClass} ml-2`}>
-                        {emotion}
-                    </span>
-                );
-            };
+            // Set up idle check interval every 10 seconds
+            React.useEffect(() => {
+                const interval = setInterval(() => {
+                    handleIdle();
+                }, 10000);
+                return () => clearInterval(interval);
+            }, []);
 
             return (
-                <div className="flex flex-col h-screen max-w-4xl mx-auto shadow-lg">
-                    <header className="bg-indigo-600 text-white p-4 shadow">
-                        <h1 className="text-xl font-bold">NPC Conversation System</h1>
-                    </header>
-                    
-                    <div className="flex-1 overflow-y-auto p-4 bg-white">
-                        {messages.length === 0 && (
-                            <div className="text-center text-gray-500 py-10">
-                                <p>Start the conversation to interact with the NPCs.</p>
-                            </div>
-                        )}
-                        
+                <div className="flex flex-col h-screen bg-gray-100">
+                    <div className="flex-1 overflow-y-auto p-4">
                         {messages.map((msg, index) => (
-                            <div key={index} className={`mb-3 ${msg.speaker === "User" ? "text-right" : "text-left"}`}>
-                                <div className={`inline-block max-w-xs md:max-w-md p-3 rounded-lg ${
-                                    msg.speaker === "User" 
-                                        ? "bg-indigo-100 text-gray-800" 
-                                        : "bg-gray-100 text-gray-800"
-                                }`}>
-                                    <div className="font-medium text-sm mb-1 flex items-center">
-                                        {msg.speaker}
-                                        {msg.emotion && <EmotionBadge emotion={msg.emotion} />}
-                                    </div>
-                                    <div className="text-sm whitespace-pre-wrap">{msg.text}</div>
-                                </div>
+                            <div key={index} className={`mb-2 ${msg.speaker === "User" ? "text-right" : "text-left"}`}>
+                                <span className={`inline-block p-2 rounded ${msg.speaker === "User" ? "bg-blue-200" : "bg-gray-200"}`}>
+                                    <strong>{msg.speaker}:</strong> {msg.text}
+                                </span>
                             </div>
                         ))}
-                        <div ref={messageEndRef} />
                     </div>
-                    
                     <div className="p-4 border-t bg-white">
-                        {currentEmotion && (
-                            <div className="mb-2 text-sm">
-                                <span className="text-gray-600">Detected emotion: </span>
-                                <EmotionBadge emotion={currentEmotion} />
-                            </div>
-                        )}
-                        
                         <div className="flex space-x-2">
                             <input
                                 type="text"
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyPress={(e) => e.key === "Enter" && sendMessage()}
-                                className="flex-1 p-2 border rounded-l focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="flex-1 p-2 border rounded focus:outline-none"
                                 placeholder="Type your message..."
                                 disabled={loading || isRecording || transcribing}
                             />
                             <button
                                 onClick={sendMessage}
-                                className="p-2 bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-indigo-300 rounded-r transition"
+                                className="p-2 bg-blue-500 text-white hover:bg-blue-600 disabled:bg-gray-400"
                                 disabled={loading || isRecording || transcribing || input.trim() === ""}
                             >
                                 {loading ? "Sending..." : "Send"}
                             </button>
                             <button
                                 onClick={toggleRecording}
-                                className={`p-2 ${isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'} text-white rounded transition`}
+                                className={`p-2 ${isRecording ? 'bg-red-500' : 'bg-green-500'} text-white hover:bg-opacity-80`}
                                 disabled={loading || transcribing || !stream}
                             >
-                                {transcribing ? "Transcribing..." : isRecording ? "Stop" : "Record"}
+                                {isRecording ? "Stop Recording" : "Start Recording"}
                             </button>
                         </div>
                     </div>
