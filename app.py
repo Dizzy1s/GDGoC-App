@@ -92,7 +92,7 @@ def generate_diverse_personality(name: str, topic: str, attempt: int = 0,
         "eccentric and unconventional", "traditional and disciplined"
     ]
     cultural_backgrounds = ["East Asian", "South Asian", "Middle Eastern", "Latin American"]
-    age_ranges = ["young adult (20-29)", "early thirties", "fifties", "seventies"]
+    age_ranges = ["teen (15-19)", "young adult (20-29)", "early thirties", "mid thirties"]
 
     direction_index = (len(previous_personalities) + attempt) % len(diversity_directions)
     culture_index = (len(previous_personalities) + attempt + 3) % len(cultural_backgrounds)
