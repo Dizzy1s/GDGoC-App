@@ -1,205 +1,175 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Simulation</title>
-    <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NPC Meet</title>
+
+  <!-- React + Babel + Tailwind (CDN for quick prototyping) -->
+  <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Tiny helper for glowing ring animation -->
+  <style>
+    @keyframes speakGlow {
+      0%   { box-shadow: 0 0 0 0 rgba(34,197,94,.6); }
+      70%  { box-shadow: 0 0 0 10px rgba(34,197,94,0); }
+      100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+    }
+    .speaking { animation: speakGlow 1.5s ease-out infinite; }
+  </style>
 </head>
-<body>
-    <div id="root"></div>
-    <script type="text/babel">
-        function ChatApp() {
-            const [messages, setMessages] = React.useState([]);
-            const [input, setInput] = React.useState("");
-            const [loading, setLoading] = React.useState(false);
-            const [isRecording, setIsRecording] = React.useState(false);
-            const [transcribing, setTranscribing] = React.useState(false);
-            const [currentEmotion, setCurrentEmotion] = React.useState(null);
-            const [stream, setStream] = React.useState(null);
-            const mediaRecorderRef = React.useRef(null);
-            const audioChunksRef = React.useRef([]);
+<body class="bg-gray-900 text-white">
+  <div id="root"></div>
 
-            // Request microphone permission once when component mounts
-            React.useEffect(() => {
-                const requestMic = async () => {
-                    try {
-                        const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                        setStream(micStream);
-                    } catch (error) {
-                        console.error("Error accessing microphone:", error);
-                        alert("Microphone access denied. Please grant permission to use the recording feature.");
-                    }
-                };
-                requestMic();
-            }, []);
-
-            // Start audio recording
-            const startRecording = () => {
-                if (!stream) {
-                    alert("Microphone access is required to record audio.");
-                    return;
-                }
-                mediaRecorderRef.current = new MediaRecorder(stream);
-                mediaRecorderRef.current.ondataavailable = event => {
-                    audioChunksRef.current.push(event.data);
-                };
-                mediaRecorderRef.current.start();
-                setIsRecording(true);
-            };
-
-            // Stop audio recording and return Blob
-            const stopRecording = () => {
-                return new Promise(resolve => {
-                    mediaRecorderRef.current.onstop = () => {
-                        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
-                        audioChunksRef.current = [];
-                        resolve(audioBlob);
-                    };
-                    mediaRecorderRef.current.stop();
-                });
-            };
-
-            // Toggle recording state
-            const toggleRecording = async () => {
-                if (isRecording) {
-                    const audioBlob = await stopRecording();
-                    transcribeAudio(audioBlob);
-                    setIsRecording(false);
-                } else {
-                    startRecording();
-                }
-            };
-
-            // Transcribe audio and update input
-            const transcribeAudio = async (audioBlob) => {
-                setTranscribing(true);
-                try {
-                    const formData = new FormData();
-                    formData.append('audio', audioBlob, 'audio.wav');
-                    const res = await fetch('http://localhost:5000/voice_chat?transcribe_only=true', {
-                        method: 'POST',
-                        body: formData,
-                    });
-                    const data = await res.json();
-                    if (data.error) {
-                        console.error("Transcription error:", data.error);
-                        alert("Failed to transcribe audio.");
-                    } else {
-                        setInput(data.transcription);
-                        setCurrentEmotion(data.emotion);
-                    }
-                } catch (error) {
-                    console.error("Error transcribing audio:", error);
-                    alert("Failed to transcribe audio.");
-                } finally {
-                    setTranscribing(false);
-                }
-            };
-
-            // Send text message to /chat endpoint
-            const sendMessage = async () => {
-                if (input.trim() === "" || loading || isRecording || transcribing) return;
-                setLoading(true);
-                try {
-                    const body = { message: input };
-                    if (currentEmotion) {
-                        body.emotion = currentEmotion;
-                    }
-                    const res = await fetch('http://localhost:5000/chat', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(body),
-                    });
-                    const data = await res.json();
-                    setMessages(prev => [
-                        ...prev,
-                        { speaker: "User", text: input },
-                        { speaker: data.response.split(": ")[0], text: data.response.split(": ")[1] }
-                    ]);
-                    setInput("");
-                    setCurrentEmotion(null); // Reset emotion after sending
-                } catch (error) {
-                    console.error("Error sending text message:", error);
-                    alert("Failed to send message.");
-                } finally {
-                    setLoading(false);
-                }
-            };
-
-            // Handle idle NPC responses from /idle endpoint
-            const handleIdle = async () => {
-                try {
-                    const res = await fetch('http://localhost:5000/idle');
-                    const data = await res.json();
-                    if (data.responses.length > 0) {
-                        setMessages(prev => [
-                            ...prev,
-                            ...data.responses.map(res => ({
-                                speaker: res.split(": ")[0],
-                                text: res.split(": ")[1]
-                            }))
-                        ]);
-                    }
-                } catch (error) {
-                    console.error("Error during idle check:", error);
-                }
-            };
-
-            // Set up idle check interval every 10 seconds
-            React.useEffect(() => {
-                const interval = setInterval(() => {
-                    handleIdle();
-                }, 10000);
-                return () => clearInterval(interval);
-            }, []);
-
-            return (
-                <div className="flex flex-col h-screen bg-gray-100">
-                    <div className="flex-1 overflow-y-auto p-4">
-                        {messages.map((msg, index) => (
-                            <div key={index} className={`mb-2 ${msg.speaker === "User" ? "text-right" : "text-left"}`}>
-                                <span className={`inline-block p-2 rounded ${msg.speaker === "User" ? "bg-blue-200" : "bg-gray-200"}`}>
-                                    <strong>{msg.speaker}:</strong> {msg.text}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="p-4 border-t bg-white">
-                        <div className="flex space-x-2">
-                            <input
-                                type="text"
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                onKeyPress={(e) => e.key === "Enter" && sendMessage()}
-                                className="flex-1 p-2 border rounded focus:outline-none"
-                                placeholder="Type your message..."
-                                disabled={loading || isRecording || transcribing}
-                            />
-                            <button
-                                onClick={sendMessage}
-                                className="p-2 bg-blue-500 text-white hover:bg-blue-600 disabled:bg-gray-400"
-                                disabled={loading || isRecording || transcribing || input.trim() === ""}
-                            >
-                                {loading ? "Sending..." : "Send"}
-                            </button>
-                            <button
-                                onClick={toggleRecording}
-                                className={`p-2 ${isRecording ? 'bg-red-500' : 'bg-green-500'} text-white hover:bg-opacity-80`}
-                                disabled={loading || transcribing || !stream}
-                            >
-                                {isRecording ? "Stop Recording" : "Start Recording"}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            );
+  <script type="text/babel">
+/* -------------------------------------------------------------
+   Helper components
+------------------------------------------------------------- */
+const NPCBubble = ({ name, isActive, lastLine }) => {
+  const initials = name.split(" ").map(p => p[0]).join("").slice(0,2);
+  return (
+    <div className="flex flex-col items-center w-32 mx-2">
+      <div
+        className={
+          "w-24 h-24 rounded-full bg-gray-700 flex items-center justify-center text-2xl font-semibold " +
+          (isActive ? "speaking ring-4 ring-green-400" : "ring-2 ring-gray-600")
         }
+      >
+        {initials}
+      </div>
+      <span className="mt-1 text-sm text-gray-200">{name}</span>
 
-        ReactDOM.render(<ChatApp />, document.getElementById('root'));
-    </script>
+      {lastLine && (
+        <div className="mt-2 bg-gray-800 rounded-lg p-2 text-xs text-gray-100 max-w-xs">
+          {lastLine}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* -------------------------------------------------------------
+   Main App
+------------------------------------------------------------- */
+function MeetApp() {
+  const [npcs, setNpcs]             = React.useState([]);
+  const [lastLines, setLastLines]   = React.useState({});   // {npcName: text}
+  const [active, setActive]         = React.useState(null); // name of last speaker
+  const [input, setInput]           = React.useState("");
+  const [busy, setBusy]             = React.useState(false);
+
+  /* --- initial fetch of NPC roster ------------------------------------ */
+  React.useEffect(() => {
+    fetch("http://localhost:5000/npcs")
+      .then(r => r.json())
+      .then(data => setNpcs(data.npcs || []))
+      .catch(err => console.error("Could not get NPC list:", err));
+  }, []);
+
+  /* --- idle poll to let NPCs talk on their own ------------------------ */
+  React.useEffect(() => {
+    const iv = setInterval(() => {
+      fetch("http://localhost:5000/idle")
+        .then(r => r.json())
+        .then(data => {
+          if (Array.isArray(data.responses)) {
+            data.responses.forEach(({speaker, text}) => {
+              appendMessage(speaker, text);
+            });
+          }
+        })
+        .catch(() => {});
+    }, 9000);
+    return () => clearInterval(iv);
+  }, [lastLines]);
+
+  /* --- helpers -------------------------------------------------------- */
+  const appendMessage = (speaker, text) => {
+    setLastLines(prev => ({ ...prev, [speaker]: text }));
+    setActive(speaker);
+  };
+
+  const send = () => {
+    if (!input.trim() || busy) return;
+    setBusy(true);
+    fetch("http://localhost:5000/chat", {
+      method : "POST",
+      headers: { "Content-Type":"application/json" },
+      body   : JSON.stringify({ message: input.trim() })
+    })
+    .then(r => r.json())
+    .then(({speaker, text}) => {
+      appendMessage("User", input.trim());      // show what *you* said
+      appendMessage(speaker, text);             // show NPC reply
+      setInput("");
+    })
+    .finally(() => setBusy(false));
+  };
+const [micOn, setMicOn]   = React.useState(false);
+  /* ----------------------------------------------------------- */
+  return (
+    <div className="flex flex-col h-screen">
+      {/* ── NPC bubbles row ─────────────────────────── */}
+
+      
+      <div className="flex justify-center flex-wrap p-4 bg-gray-800">
+        {npcs.map(npc => (
+          <NPCBubble
+            key={npc}
+            name={npc}
+            isActive={active === npc}
+            lastLine={lastLines[npc]}
+          />
+        ))}
+      </div>
+
+      {/* ── spacer (just for look) ──────────────────── */}
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-gray-500 italic">
+          {active ? `${active} is speaking…` : "Say something to start the conversation"}
+        </div>
+      </div>
+
+      {/* ── input box ──────────────────────────────── */}
+      <div className="p-4 bg-gray-800 border-t border-gray-700">
+        <input
+          className="w-full p-3 rounded bg-gray-700 text-white focus:outline-none"
+          placeholder="Type here and press Enter…"
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key==="Enter" && send()}
+          disabled={busy}
+        />
+        {/* MIC TOGGLE  ─────────────────────── */}
+        <button
+          onClick={() => {
+            const next = !micOn;
+            setMicOn(next);
+            fetch("http://localhost:5000/voice", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ enable: next })
+            });
+          }}
+          className={
+            "w-12 h-12 rounded-full flex items-center justify-center " +
+            (micOn ? "bg-red-500" : "bg-gray-600") +
+            " hover:scale-105 transition"
+          }
+          title={micOn ? "Mute mic" : "Un-mute mic"}
+        >
+          {micOn ? "🎙️" : "🔇"}
+        </button>
+      </div>
+      
+    </div>
+  );
+}
+
+ReactDOM.render(<MeetApp/>, document.getElementById("root"));
+  </script>
 </body>
 </html>

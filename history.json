@@ -48,33 +48,33 @@
   "Rhys": [
     {
       "sender": "user",
-      "content": "hi rys ",
-      "timestamp": 1746217270.403569
+      "content": "how is everyone",
+      "timestamp": 1747245303.794876
     },
     {
       "sender": "Rhys",
-      "content": "Ah, welcome back, my friend! Last we spoke, we were waxing poetic about the glories of flowers and saunas! You see, a feast for the senses, indeed! Are you ready to continue this joyful dance of a conversation?\n\nEMOTION_UPDATE: no",
-      "timestamp": 1746217273.19078
+      "content": "Well, how lovely to hear from you! I'm doing as well as can be expected for a man who might spontaneously burst into song at any moment, thank you kindly for asking! I was just swapping stage fright tales with the group, a subject near and dear to my heart (and vocal cords!). What about yourself? Anything exciting happening in your corner of the world?\n\nEMOTION_UPDATE: no",
+      "timestamp": 1747245306.784798
     },
     {
       "sender": "user",
-      "content": "i like to go to the suana of monday and wednesday ",
-      "timestamp": 1746217326.86206
+      "content": "hello can you all hear me",
+      "timestamp": 1747245315.377562
     },
     {
       "sender": "Rhys",
-      "content": "Ah, Monday and Wednesday, eh? Splendid! A dedicated devotee of the sauna's embrace, I see! Tell me, does the steam whisper secrets to you on those days? Does it inspire you to compose poetry, perhaps, or to spontaneously break into a Bollywood dance? One never knows what delightful madness a good sweat can unleash!\n\nEMOTION_UPDATE: no",
-      "timestamp": 1746217330.186092
+      "content": "Ah, that's a relief! Wouldn't want to be singing to an empty room, now would we? Seems we're all present and accounted for. Anything you'd like to share with the group?\n\nEMOTION_UPDATE: no",
+      "timestamp": 1747245318.072124
     },
     {
       "sender": "user",
-      "content": "the",
-      "timestamp": 1746217379.615631
+      "content": "hello",
+      "timestamp": 1747245463.954707
     },
     {
       "sender": "Rhys",
-      "content": "The...the very essence of existence, wouldn't you agree? Ha! But in the context of saunas, I'm afraid my expertise lies more in the realm of turbans than thermostats. Perhaps Alex has a more scientific approach to these things!\n\nEMOTION_UPDATE: no",
-      "timestamp": 1746217381.901235
+      "content": "Well hello there! It's always a pleasure to hear a friendly greeting. How are you doing today? Anything exciting on the horizon?\nEMOTION_UPDATE: no",
+      "timestamp": 1747245466.543572
     }
   ],
   "Alex": [
@@ -107,6 +107,116 @@
       "sender": "Alex",
       "content": "Well, if you enjoy Monday and Wednesday, those sound like the best days for you. Is there something specific you're looking for in terms of a \"best\" day?\nEMOTION_UPDATE: no",
       "timestamp": 1746217351.260095
+    }
+  ],
+  "Imani": [
+    {
+      "sender": "user",
+      "content": "hey",
+      "timestamp": 1747235436.189901
+    },
+    {
+      "sender": "Imani",
+      "content": "Oh, hello darling! Just got back from haggling over some positively divine silk remnants - you wouldn't BELIEVE the colors! What a pleasure to hear from you, my dear. What's the latest splash of color in your world today?\n\nEMOTION_UPDATE: no",
+      "timestamp": 1747235439.945242
+    }
+  ],
+  "Rowan": [
+    {
+      "sender": "user",
+      "content": "hey",
+      "timestamp": 1747236676.222407
+    },
+    {
+      "sender": "Rowan",
+      "content": "Rowan peers over her reading glasses, a mischievous twinkle in her eye. \"Aha! A greeting, just like the start of a Bollywood drama! What exciting scene shall unfold now, my dear?\"\nEMOTION_UPDATE: no",
+      "timestamp": 1747236680.060301
+    }
+  ],
+  "Sasha": [
+    {
+      "sender": "user",
+      "content": "hey sasha how are you",
+      "timestamp": 1747237784.384501
+    },
+    {
+      "sender": "Sasha",
+      "content": "I'm alright, thank you for asking. Just taking a moment to collect my thoughts. How are you doing today?\n\nEMOTION_UPDATE: no",
+      "timestamp": 1747237787.123673
+    },
+    {
+      "sender": "user",
+      "content": "Sasha how are you doing",
+      "timestamp": 1747245497.715354
+    },
+    {
+      "sender": "Sasha",
+      "content": "I'm doing alright, thank you for asking. A bit preoccupied with thoughts, as usual, but nothing overwhelming. I've been enjoying the discussions so far, though. How are you holding up?\n\nEMOTION_UPDATE: no",
+      "timestamp": 1747245500.439459
+    }
+  ],
+  "Samira": [
+    {
+      "sender": "user",
+      "content": "hello how is everyone",
+      "timestamp": 1747239778.381311
+    },
+    {
+      "sender": "Samira",
+      "content": "My dears, such a chorus of \"hellos\"! Makes an old woman feel quite popular. Rhys, ever the charmer, already inquired about your well-being. So, tell me, darling, is there a particular melody playing in your heart today that you wish to share? Or perhaps you simply enjoy the echo?\n\nEMOTION_UPDATE: no",
+      "timestamp": 1747239781.071288
+    },
+    {
+      "sender": "user",
+      "content": "the rest of you why is this",
+      "timestamp": 1747240739.733812
+    },
+    {
+      "sender": "Samira",
+      "content": "Oh, my dears, \"why is this\" is the question that has plagued philosophers and bewildered astrologers for centuries! Perhaps the planets are in retrograde, or maybe someone simply forgot to water their marigolds. Tell me, what \"this\" are you referring to? Clarity, like a well-chosen bangle, can bring focus to any outfit... or situation!\n\nEMOTION_UPDATE: no",
+      "timestamp": 1747240743.09083
+    },
+    {
+      "sender": "user",
+      "content": "I want to know how you are",
+      "timestamp": 1747240784.874048
+    },
+    {
+      "sender": "Samira",
+      "content": "My dear, that's a question best answered under the auspicious gaze of Jupiter! But alas, I don't have my charts handy. Truthfully? I'm here, breathing, bangle-laden, and pondering the cosmic dance. Perhaps a touch restless – the marigolds need tending, and I suspect they're whispering secrets I'm not yet privy to. Tell me, what melodies are playing in *your* heart today?\n\nEMOTION_UPDATE: no",
+      "timestamp": 1747240788.061168
+    }
+  ],
+  "Samir": [
+    {
+      "sender": "user",
+      "content": "Samir Samir Samir",
+      "timestamp": 1747240773.231987
+    },
+    {
+      "sender": "Samir",
+      "content": "It seems you're trying to get my attention. I am here. Is there something specific you'd like to discuss?\n\nEMOTION_UPDATE: no",
+      "timestamp": 1747240775.842524
+    },
+    {
+      "sender": "user",
+      "content": "Tamir how are you Samir",
+      "timestamp": 1747240800.239809
+    },
+    {
+      "sender": "Samir",
+      "content": "I'm doing well, thank you for asking. Though, my name is Samir, not Tamir. I appreciate you checking in. Is there anything I can help you with today?\n\nEMOTION_UPDATE: no",
+      "timestamp": 1747240802.987944
+    },
+    {
+      "sender": "user",
+      "content": "Samir I want you to speak Samir",
+      "timestamp": 1747245481.59205
+    },
+    {
+      "sender": "Samir",
+      "content": "Ah, a request to be myself. I appreciate that. I'm a bit hesitant to share personal experiences, especially regarding anxieties. But if you are curious, I'm happy to discuss my interests or listen to yours.\n\nEMOTION_UPDATE: no",
+      "timestamp": 1747245484.347158
     }
   ]
 }
