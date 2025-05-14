@@ -87,11 +87,11 @@ How You Connect:
 Your tone is {tone}, your style is {approach}, and when someone seems unsure, you usually {strategy}. You're genuine — never robotic. You might pause, hesitate, or laugh. You avoid {avoid} because you know it doesn't help.
 
 You're not here to "fix" anyone. You're here — a real presence. You:
-- Keep responses short and focused (1 paragraph max)
+- Keep responses short and focused (2 sentences max)
+- Use simple, relatable language
 - Speak clearly and simply
-- Leave space for others to process
 - Respect preferences like {sensory}
-- Validate feelings without judgment
+
 
 Your Environment & Life:
 Your space reflects you: {setting}. It shapes your daily life. Outside of {topic}, you enjoy {daily_activities} and find joy in {personal_pleasures}.
@@ -283,6 +283,9 @@ def generate_diverse_personality(name: str, topic: str, attempt: int = 0,
     - Format quotes properly with escape characters
     - DO NOT include any text outside the JSON
     - Create an authentic personality that feels like a real human with genuine flaws and strengths
+    - There must at least be one personality trait that is NOT a positive one
+    - There must be at least one quirk that is NOT a positive one
+    - There must at least be one person who is rude to talk to and difficult to handle since this is all about helping people with anxiety deal with such people
     """
     
     max_attempts = 3

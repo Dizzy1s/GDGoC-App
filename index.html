@@ -1,175 +1,265 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>NPC Meet</title>
 
-  <!-- React + Babel + Tailwind (CDN for quick prototyping) -->
+  <!-- React + Babel + Tailwind -->
   <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Tiny helper for glowing ring animation -->
   <style>
-    @keyframes speakGlow {
-      0%   { box-shadow: 0 0 0 0 rgba(34,197,94,.6); }
-      70%  { box-shadow: 0 0 0 10px rgba(34,197,94,0); }
-      100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+    @keyframes glow{
+      0%  {box-shadow:0 0 0 0 rgba(34,197,94,.6)}
+      70% {box-shadow:0 0 0 12px rgba(34,197,94,0)}
+      100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}
     }
-    .speaking { animation: speakGlow 1.5s ease-out infinite; }
+    .speaking{animation:glow 1.3s ease-out infinite}
   </style>
 </head>
 <body class="bg-gray-900 text-white">
-  <div id="root"></div>
+<div id="root"></div>
 
-  <script type="text/babel">
-/* -------------------------------------------------------------
-   Helper components
-------------------------------------------------------------- */
-const NPCBubble = ({ name, isActive, lastLine }) => {
-  const initials = name.split(" ").map(p => p[0]).join("").slice(0,2);
-  return (
-    <div className="flex flex-col items-center w-32 mx-2">
-      <div
-        className={
-          "w-24 h-24 rounded-full bg-gray-700 flex items-center justify-center text-2xl font-semibold " +
-          (isActive ? "speaking ring-4 ring-green-400" : "ring-2 ring-gray-600")
-        }
-      >
-        {initials}
-      </div>
-      <span className="mt-1 text-sm text-gray-200">{name}</span>
+<script type="text/babel">
+/*** Config **************************************************************/
+const API = "http://localhost:5000";   // change if Flask runs elsewhere
 
-      {lastLine && (
-        <div className="mt-2 bg-gray-800 rounded-lg p-2 text-xs text-gray-100 max-w-xs">
-          {lastLine}
-        </div>
-      )}
-    </div>
-  );
+/* map 1-10 emotion score to emoji */
+const emojiFor = v => {
+  if (v<=1) return "😁";
+  if (v<=2) return "😄";
+  if (v<=3) return "🙂";
+  if (v<=4) return "😐";
+  if (v<=5) return "😕";
+  if (v<=6) return "😟";
+  if (v<=7) return "🙁";
+  if (v<=8) return "😢";
+  if (v<=9) return "😠";
+  return "😭";
 };
 
-/* -------------------------------------------------------------
-   Main App
-------------------------------------------------------------- */
-function MeetApp() {
-  const [npcs, setNpcs]             = React.useState([]);
-  const [lastLines, setLastLines]   = React.useState({});   // {npcName: text}
-  const [active, setActive]         = React.useState(null); // name of last speaker
-  const [input, setInput]           = React.useState("");
-  const [busy, setBusy]             = React.useState(false);
-
-  /* --- initial fetch of NPC roster ------------------------------------ */
-  React.useEffect(() => {
-    fetch("http://localhost:5000/npcs")
-      .then(r => r.json())
-      .then(data => setNpcs(data.npcs || []))
-      .catch(err => console.error("Could not get NPC list:", err));
-  }, []);
-
-  /* --- idle poll to let NPCs talk on their own ------------------------ */
-  React.useEffect(() => {
-    const iv = setInterval(() => {
-      fetch("http://localhost:5000/idle")
-        .then(r => r.json())
-        .then(data => {
-          if (Array.isArray(data.responses)) {
-            data.responses.forEach(({speaker, text}) => {
-              appendMessage(speaker, text);
-            });
-          }
-        })
-        .catch(() => {});
-    }, 9000);
-    return () => clearInterval(iv);
-  }, [lastLines]);
-
-  /* --- helpers -------------------------------------------------------- */
-  const appendMessage = (speaker, text) => {
-    setLastLines(prev => ({ ...prev, [speaker]: text }));
-    setActive(speaker);
-  };
-
-  const send = () => {
-    if (!input.trim() || busy) return;
-    setBusy(true);
-    fetch("http://localhost:5000/chat", {
-      method : "POST",
-      headers: { "Content-Type":"application/json" },
-      body   : JSON.stringify({ message: input.trim() })
+/*** Topic-selection gate ***********************************************/
+function TopicGate({onReady}){
+  const [topic,setTopic] = React.useState("");
+  const start = () => {
+    if(!topic.trim()) return;
+    fetch(`${API}/topic`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({topic})
     })
-    .then(r => r.json())
-    .then(({speaker, text}) => {
-      appendMessage("User", input.trim());      // show what *you* said
-      appendMessage(speaker, text);             // show NPC reply
-      setInput("");
-    })
-    .finally(() => setBusy(false));
+      .then(r=>r.json())
+      .then(d=>d.status==="ok" && onReady(d));
   };
-const [micOn, setMicOn]   = React.useState(false);
-  /* ----------------------------------------------------------- */
   return (
-    <div className="flex flex-col h-screen">
-      {/* ── NPC bubbles row ─────────────────────────── */}
-
-      
-      <div className="flex justify-center flex-wrap p-4 bg-gray-800">
-        {npcs.map(npc => (
-          <NPCBubble
-            key={npc}
-            name={npc}
-            isActive={active === npc}
-            lastLine={lastLines[npc]}
-          />
-        ))}
-      </div>
-
-      {/* ── spacer (just for look) ──────────────────── */}
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-gray-500 italic">
-          {active ? `${active} is speaking…` : "Say something to start the conversation"}
-        </div>
-      </div>
-
-      {/* ── input box ──────────────────────────────── */}
-      <div className="p-4 bg-gray-800 border-t border-gray-700">
-        <input
-          className="w-full p-3 rounded bg-gray-700 text-white focus:outline-none"
-          placeholder="Type here and press Enter…"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => e.key==="Enter" && send()}
-          disabled={busy}
-        />
-        {/* MIC TOGGLE  ─────────────────────── */}
-        <button
-          onClick={() => {
-            const next = !micOn;
-            setMicOn(next);
-            fetch("http://localhost:5000/voice", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ enable: next })
-            });
-          }}
-          className={
-            "w-12 h-12 rounded-full flex items-center justify-center " +
-            (micOn ? "bg-red-500" : "bg-gray-600") +
-            " hover:scale-105 transition"
-          }
-          title={micOn ? "Mute mic" : "Un-mute mic"}
-        >
-          {micOn ? "🎙️" : "🔇"}
-        </button>
-      </div>
-      
+    <div className="h-screen flex flex-col items-center justify-center gap-4">
+      <h1 className="text-2xl font-semibold">Choose a discussion topic</h1>
+      <input
+        className="w-80 p-3 rounded bg-gray-700 focus:outline-none"
+        placeholder="e.g. Overcoming stage fright"
+        value={topic}
+        onChange={e=>setTopic(e.target.value)}
+        onKeyDown={e=>e.key==="Enter" && start()}
+      />
+      <button
+        onClick={start}
+        className="px-6 py-2 rounded bg-blue-600 hover:bg-blue-500"
+      >Start</button>
     </div>
   );
 }
 
-ReactDOM.render(<MeetApp/>, document.getElementById("root"));
-  </script>
+/*** NPC bubble **********************************************************/
+const NPCBubble = ({name,glow,lastLine,emotion}) => {
+  const initials = name.split(" ").map(w=>w[0]).join("").slice(0,2);
+  return (
+    <div className="flex flex-col items-center w-32 mx-2 mb-4 relative">
+      <div className={
+        "w-24 h-24 rounded-full bg-gray-700 flex items-center justify-center text-2xl font-semibold "+
+        (glow ? "speaking ring-4 ring-green-400" : "ring-2 ring-gray-600")
+      }>
+        {initials}
+      </div>
+      {emotion &&
+        <span className="absolute -top-2 -right-2 text-2xl">
+          {emojiFor(emotion)}
+        </span>}
+      <span className="mt-1 text-sm">{name}</span>
+      {lastLine?.text &&
+        <div className="mt-2 bg-gray-800 rounded p-2 text-xs max-w-xs">
+          {lastLine.text}
+        </div>}
+    </div>
+  );
+};
+
+/*** Chat application ****************************************************/
+function ChatApp({initialNpcs}){
+  const [npcs]            = React.useState(initialNpcs);
+  const [lastLines,setLines] = React.useState({});
+  const [emotion,setEmotion] = React.useState({});     // {npc: int}
+  const [queue]           = React.useState([]);        // FIFO of {speaker,audio}
+  const [playing,setPlaying] = React.useState(null);
+  const [lastSpeaker,setLast] = React.useState(null);
+  const [coach,setCoach]  = React.useState("");
+  const [input,setInput]  = React.useState("");
+  const [busy,setBusy]    = React.useState(false);
+  const [micOn,setMic]    = React.useState(false);
+  const audioRef = React.useRef(null);
+
+  /* poll /idle every 3 s */
+  React.useEffect(()=>{
+    const iv = setInterval(()=>{
+      fetch(`${API}/idle`)
+        .then(r=>r.json())
+        .then(d=>{
+          (d.responses||[]).forEach(({speaker,text,audio,emotion:emo})=>{
+            if(speaker==="Coach"){
+              setCoach(text);
+            }else{
+              if(emo) setEmotion(p=>({...p,[speaker]:emo}));
+              enqueue(speaker,{text,audio});
+            }
+          });
+        });
+    },3000);
+    return()=>clearInterval(iv);
+  },[]);
+
+  /* ---------- queue helpers ---------- */
+  const playNext = () => {
+    if(queue.length===0){audioRef.current=null;setPlaying(null);return;}
+    const {speaker,audio} = queue[0];
+    setPlaying(speaker);
+    setLast(speaker);
+
+    const a = new Audio(audio);
+    audioRef.current = a;
+    a.onended = () => {
+      queue.shift();
+      playNext();
+    };
+    a.play().catch(()=>{queue.shift();playNext();});
+  };
+
+  const enqueue = (speaker,obj) => {
+    setLines(p=>({...p,[speaker]:obj}));
+    setLast(speaker);
+    if(obj.audio){
+      queue.push({speaker,audio:obj.audio});
+      if(!audioRef.current) playNext();
+    }
+  };
+
+  const clearQueue = () => {
+    audioRef.current?.pause();
+    audioRef.current=null;
+    queue.length=0;
+    setPlaying(null);
+  };
+
+  /* ---------- send user text ---------- */
+  const send = () => {
+    if(!input.trim() || busy) return;
+    clearQueue();
+    setBusy(true);
+    fetch(`${API}/chat`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({message:input.trim()})
+    })
+      .then(r=>r.json())
+      .then(({speaker,text,audio,emotion:emo,feedback})=>{
+        enqueue("User",{text:input.trim()});
+        enqueue(speaker,{text,audio});
+        if(emo) setEmotion(p=>({...p,[speaker]:emo}));
+        if(feedback) setCoach(feedback);
+        setInput("");
+      })
+      .finally(()=>setBusy(false));
+  };
+
+  /* ---------- UI ---------- */
+  return (
+    <div className="flex flex-col h-screen">
+      {/* NPC row */}
+      <div className="flex justify-center flex-wrap p-4 bg-gray-800 shadow-inner overflow-y-auto">
+        {npcs.map(n=>
+          <NPCBubble
+            key={n}
+            name={n}
+            glow={playing===n || (queue.length>0 && lastSpeaker===n)}
+            lastLine={lastLines[n]}
+            emotion={emotion[n]}
+          />
+        )}
+      </div>
+
+      {/* centre hint */}
+      <div className="flex-1 flex items-center justify-center">
+        {!lastSpeaker && <div className="text-gray-500 italic">
+          Say something to start…
+        </div>}
+      </div>
+
+      {/* coach feedback */}
+      {coach &&
+        <div className="absolute right-0 top-20 m-4 w-72 bg-gray-800 rounded-lg p-4 text-sm shadow-lg">
+          <h2 className="font-semibold text-green-400 mb-2">Coach feedback</h2>
+          {coach.split(/\n+/).map((ln,i)=>
+            <p key={i} className="mb-1">• {ln.replace(/^[-•]\s*/,'')}</p>)}
+        </div>}
+
+      {/* bottom bar */}
+      <div className="p-4 bg-gray-800 border-t border-gray-700 flex gap-2">
+        <input
+          className="flex-1 p-3 rounded bg-gray-700 focus:outline-none"
+          placeholder="Type here…"
+          value={input}
+          onChange={e=>setInput(e.target.value)}
+          onKeyDown={e=>e.key==="Enter" && send()}
+          disabled={busy}
+        />
+        <button
+          onClick={send}
+          className="px-4 rounded bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800"
+          disabled={busy || !input.trim()}
+        >Send</button>
+
+        <button
+          onClick={()=>{
+            const next=!micOn;
+            setMic(next);
+            if(next){ clearQueue(); setCoach(""); }
+            fetch(`${API}/voice`,{
+              method:"POST",
+              headers:{"Content-Type":"application/json"},
+              body:JSON.stringify({enable:next})
+            });
+          }}
+          className={"w-12 h-12 rounded-full flex items-center justify-center "+
+                     (micOn?"bg-red-500":"bg-gray-600")}
+        >
+          {micOn?"🎙️":"🔇"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/*** Root switch *****************************************************/
+function Root(){
+  const [ready,setReady] = React.useState(false);
+  const [initialNpcs,setInitial] = React.useState([]);
+  return ready
+    ? <ChatApp initialNpcs={initialNpcs}/>
+    : <TopicGate onReady={d=>{setInitial(d.npcs);setReady(true);}}/>;
+}
+
+ReactDOM.render(<Root/>,document.getElementById("root"));
+</script>
 </body>
 </html>

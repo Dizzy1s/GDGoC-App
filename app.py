@@ -1,4 +1,9 @@
 from __future__ import annotations
+import gender_guesser.detector as gender
+from random import choice
+from google.cloud import texttospeech
+import hashlib, pathlib
+
 import os, random, json, time, tempfile, re
 import pyaudio, wave
 import google.generativeai as genai
@@ -21,6 +26,10 @@ import queue, struct, math, threading, wave
 import pyaudio, numpy as np
 from google.cloud import speech
 from google.oauth2    import service_account
+import concurrent.futures, queue
+
+feedback_queue = queue.Queue()
+executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
 
 
 CACHE_FILE = Path("npc_cache.json")        # disk stash for personalities
@@ -40,7 +49,30 @@ CREDS_PATH      = "creds.json"
 g_credentials   = service_account.Credentials.from_service_account_file(
                       CREDS_PATH)
 stt_client      = speech.SpeechClient(credentials=g_credentials)
+tts_client   = texttospeech.TextToSpeechClient(credentials=g_credentials)
+AUDIO_DIR    = pathlib.Path("static/audio")
+AUDIO_DIR.mkdir(parents=True, exist_ok=True)
 
+# ── Google-TTS voice pools by perceived gender ─────────────────────────
+
+FEMALE_VOICES = [
+    "en-US-Chirp3-HD-Achird", "en-US-Chirp3-HD-Aoede", "en-US-Chirp3-HD-Callirrhoe",
+    "en-US-Chirp3-HD-Despina", "en-US-Chirp3-HD-Erinome", "en-US-Chirp3-HD-Kore",
+    "en-US-Chirp3-HD-Laomedeia", "en-US-Chirp3-HD-Leda", "en-US-Chirp3-HD-Pulcherrima",
+    "en-US-Chirp3-HD-Schedar", "en-US-Chirp3-HD-Sulafat", "en-US-Chirp3-HD-Vindemiatrix",
+    "en-US-Chirp3-HD-Zephyr", "en-US-Chirp3-HD-Zubenelgenubi", "en-US-Chirp3-HD-Sadaltager",
+]
+
+MALE_VOICES = [
+    "en-US-Chirp3-HD-Achernar", "en-US-Chirp3-HD-Algenib", "en-US-Chirp3-HD-Algieba",
+    "en-US-Chirp3-HD-Alnilam", "en-US-Chirp3-HD-Autonoe", "en-US-Chirp3-HD-Charon",
+    "en-US-Chirp3-HD-Enceladus", "en-US-Chirp3-HD-Fenrir", "en-US-Chirp3-HD-Gacrux",
+    "en-US-Chirp3-HD-Iapetus", "en-US-Chirp3-HD-Orus", "en-US-Chirp3-HD-Puck",
+    "en-US-Chirp3-HD-Rasalgethi", "en-US-Chirp3-HD-Sadachbia", "en-US-Chirp3-HD-Umbriel",
+]
+
+_voice_pool = {"female": FEMALE_VOICES.copy(), "male": MALE_VOICES.copy()}
+_gender_det = gender.Detector(case_sensitive=False)
 
 # Load environment variables
 load_dotenv()
@@ -72,6 +104,30 @@ used_names = set()
 audio = pyaudio.PyAudio()
 
 
+def tts_for(npc, line: str) -> str:
+    """
+    Synthesize <line> with <npc>'s assigned voice.
+    Returns URL like /static/audio/abc123.mp3  (cached disk file).
+    """
+    # hash on voice + text so same line isn’t re-billed
+    h = hashlib.sha256(f"{npc.voice_name}:{line}".encode()).hexdigest()[:20]
+    mp3 = AUDIO_DIR / f"{h}.mp3"
+    if mp3.exists():
+        return f"/static/audio/{mp3.name}"
+
+    synthesis_input = texttospeech.SynthesisInput(text=line)
+    voice_params    = texttospeech.VoiceSelectionParams(
+        language_code="en-US",
+        name=npc.voice_name or "en-US-Chirp3-HD-Kore",
+    )
+    audio_cfg       = texttospeech.AudioConfig(
+        audio_encoding=texttospeech.AudioEncoding.MP3
+    )
+    resp = tts_client.synthesize_speech(
+        input=synthesis_input, voice=voice_params, audio_config=audio_cfg
+    )
+    mp3.write_bytes(resp.audio_content)
+    return f"/static/audio/{mp3.name}"
 
 
 def _rms(frame: bytes) -> float:
@@ -90,6 +146,10 @@ def stt_bytes(wav_bytes: bytes) -> str:
     print("STT response:", resp.results[0].alternatives[0].transcript)
     return resp.results[0].alternatives[0].transcript if resp.results else ""
 
+
+def last_turns(n=10):
+    """Return last n turns formatted `Speaker: text`."""
+    return "\n".join(f"{t['speaker']}: {t['text']}" for t in conversation[-n:])
 
 def voice_loop():
     """
@@ -357,6 +417,31 @@ class NPC:
         self.relationships = {}
         self.last_spoken = -1
         self.emotional_state = 5
+                # -------- gender + voice -----------------------------------
+        self.gender      = self._infer_gender()
+        self.voice_name  = self._assign_voice()
+
+
+        # --------------------------------------------------------------
+    def _infer_gender(self) -> str:
+        """Return 'male' | 'female' | 'unknown' (using first name)."""
+        first = self.name.split()[0]
+        g = _gender_det.get_gender(first)
+        if g in ("female", "mostly_female"):
+            return "female"
+        if g in ("male", "mostly_male"):
+            return "male"
+        return "unknown"
+
+    def _assign_voice(self) -> str | None:
+        """Pop a voice from the gender-matched pool; return its name."""
+        pool_key = "female" if self.gender == "female" else "male"
+        pool = _voice_pool[pool_key]
+        if not pool:                         # ran out, fall back to other pool
+            pool = _voice_pool["female" if pool_key == "male" else "male"]
+        return pool.pop(choice(range(len(pool)))) if pool else None
+
+
 
     def _extract_interests_from_data(self):
         interests = []
@@ -377,39 +462,32 @@ class NPC:
             )
             embeddings.append(response["embedding"])
         return embeddings
-    def analyze_emotion(self, input):
-        prompt = f"""
-        Analyze the emotional tone based on the latest user input, considering the previous emotional state and emotional history.
-        Respond ONLY in JSON format like this:
-        {{
-            "value": int (1-10),            // Emotional intensity (sad to joy)
-            "description": string,          // Short label, e.g., "anxious", "calm"
-            "reason": string                // Brief explanation for the detected emotion
-        }}
-
-        Latest Sentence:
-        "{input}"
+    def analyze_emotion(self, latest_user_input: str):
         """
+        Update self.emotional_state (1-10).
+        1 = delighted, 10 = devastated.
+        """
+        prompt = f"""
+    You are an affect-detection module.
+
+    Scale: 1 (delighted) 2 (happy) 3 (content) 4 (neutral) 5 (concerned)
+        6 (frustrated) 7 (upset) 8 (sad) 9 (angry) 10 (devastated).
+
+    Return STRICT JSON: {{ "value": <integer 1-10> }}
+
+    Latest user sentence:
+    "{latest_user_input}"
+    """.strip()
 
         try:
-            raw_response = gemini_model.generate_content(prompt).text
-            json_match = re.search(r"\{.*\}", raw_response, re.DOTALL)
-            if not json_match:
-                raise ValueError("No JSON found in response.")
-            emotions = json.loads(json_match.group())
-            value = max(1, min(10, int(emotions["value"])))
-            description = emotions.get("description", "unknown").strip()
-            reason = emotions.get("reason", "No reason provided.").strip()
-            self.emotional_state = value
-            emotion_state = {
-                "value": value,
-                "description": description,
-                "reason": reason,
-            }
-            print("Emotion state of ", self.name, ":", emotion_state)
+            raw = gemini_model.generate_content(prompt).text
+            json_blob = re.search(r"\{.*\}", raw).group()
+            value = int(json.loads(json_blob)["value"])
+            self.emotional_state = max(1, min(10, value))
         except Exception as e:
-            print("⚠️ Emotion parsing failed:", e)
-        return
+            print("⚠️ emotion parse failed:", e)
+            # keep previous emotional_state
+
 
 
 # NPC Prompt Template
@@ -431,8 +509,8 @@ You're not here to "fix" anyone. You're here — a real presence. You:
 """
 
 # Generate NPCs
-topic = "Anxiety and stage fright"
-npc_list = generate_diverse_npcs(5, topic, force=RESET_CACHE)
+topic       = None        # start with no topic
+npc_list    = []          # empty until /topic
 
 
 # Setup relationships
@@ -453,7 +531,7 @@ conversation = []
 current_turn = 0
 user_idle_turns = 0
 max_npc_turns = 2
-idle_threshold = 2
+idle_threshold = 7
 last_speaker = None
 
 # Relationship Management
@@ -579,6 +657,13 @@ Conversation history:
 Respond as {speaker.name} with your personality and interests. Engage naturally with the user or others if relevant.
 
 Should the NPC update their emotional state based on the recent message? Reply only with 'yes' or 'no' on a new line after 'EMOTION_UPDATE:'
+
+DO keep in mind that your words would be used by a text to speech system, so use punctuation and formatting that would sound natural when read aloud. DO NOT USE roleplay language formatting or anything to explain your actions, just say everything out loud.
+
+You're not here to "fix" anyone. You're here — a real presence. You:
+- Keep responses short and focused (2 small to medium sentences max)
+- Use simple, relatable language
+- Speak clearly and simply
 """
 
 # Audio Processing Functions
@@ -633,11 +718,17 @@ def handle_user_message(user_message: str, emotion: str | None = None) -> str:
         "User"
     )
 
-    response = gemini_model.generate_content(prompt).text.strip()
+    raw_resp = gemini_model.generate_content(prompt).text.strip()
 
-    # NPC emotion update hook (existing logic)
-    if re.search(r'EMOTION_UPDATE:\s*yes', response, re.IGNORECASE):
+    # ----- 1. emotion flag ---------------------------------------
+    flag_match = re.search(r'EMOTION_UPDATE:\s*(yes|no)', raw_resp, re.I)
+    if flag_match and flag_match.group(1).lower() == "yes":
         speaker.analyze_emotion(user_message)
+
+    # ----- 2. remove ONLY that line from display/TTS -------------
+    lines = [ln for ln in raw_resp.splitlines()
+            if not ln.strip().lower().startswith("emotion_update:")]
+    response = "\n".join(lines).strip()
 
     # record & relationships --------------------------------------------------
     conversation.append({"speaker": speaker.name, "text": response})
@@ -652,8 +743,16 @@ def handle_user_message(user_message: str, emotion: str | None = None) -> str:
     if is_important(user_message):
         add_to_long_term(speaker.name, [response])
 
+    # ── AUDIO for front-end ---------------------------------------------------
+    audio_url = tts_for(speaker, response)
         # ---- handle_user_message (at the very end) ----
-    return {"speaker": speaker.name, "text": response}
+    executor.submit(_feedback_worker, user_message)
+    return {
+    "speaker": speaker.name,
+    "text"   : response,
+    "audio"  : audio_url,
+    "emotion": speaker.emotional_state
+}
 
 
 
@@ -672,6 +771,30 @@ def handle_user_message(user_message: str, emotion: str | None = None) -> str:
         return f"{speaker.name}: {response}"
     return "No NPC responded."
 
+def _feedback_worker(user_msg: str):
+    """Runs in a thread; puts feedback text in global queue."""
+    try:
+        fb = generate_feedback(user_msg)
+        feedback_queue.put(fb)
+    except Exception as e:
+        print("Feedback generation error:", e)
+
+def generate_feedback(user_msg: str) -> str:
+    prompt = (
+        "You are an experienced social-skills coach helping the user practise "
+        "real-life conversations.\n"
+        f"Current topic: {topic}\n\n"
+        "Conversation so far (latest last):\n"
+        f"{last_turns(10)}\n\n"
+        f"User's last message:\n\"{user_msg}\"\n\n"
+        "Give concise, constructive feedback **directly to the user**:\n"
+        "• Point out one strength.\n"
+        "• Point out one improvement area.\n"
+        "• Suggest a better or alternative phrasing.\n"
+        "Write 3 short bullet points."
+    )
+    return gemini_model.generate_content(prompt).text.strip()
+
 # Flask App Setup
 app = Flask(__name__)
 CORS(app)
@@ -685,6 +808,7 @@ def text_chat():
 
 # app.py  (add anywhere after npc_list is built)
 @app.route("/npcs", methods=["GET"])
+
 def get_npcs():
     return jsonify({"npcs": [n.name for n in npc_list]})
 
@@ -731,6 +855,30 @@ def voice_toggle():
         voice_enabled = False      # loop checks this flag
     return jsonify({"enabled": voice_enabled})
 
+@app.route("/topic", methods=["POST"])
+def set_topic():
+    """
+    Body: {"topic":"<new topic string>"}
+    • Overwrites the global `topic`
+    • Regenerates NPCs (forcing a fresh cache)
+    • Clears conversation + counters so we start clean
+    """
+    global topic, npc_list, conversation, current_turn, last_speaker, user_idle_turns
+
+    new_topic = request.json.get("topic", "").strip()
+    if not new_topic:
+        return jsonify({"error": "topic required"}), 400
+
+    topic = new_topic
+    npc_list = generate_diverse_npcs(5, topic, force=True)
+
+    # wipe running state
+    conversation     = []
+    current_turn     = 0
+    last_speaker     = None
+    user_idle_turns  = 0
+
+    return jsonify({"status": "ok", "topic": topic, "npcs": [n.name for n in npc_list]})
 
 @app.route('/idle', methods=['GET'])
 def idle():
@@ -742,11 +890,29 @@ def idle():
     global user_idle_turns, current_turn, last_speaker
 
     responses = []
+    while not feedback_queue.empty():
+        fb = feedback_queue.get()
+        responses.append({"speaker": "Coach", "text": fb})
 
-    # ── 1. Speech-to-text replies arrive via voice_queue ──────────
+    # ── 1. Speech-to-text replies arrive via voice_queue ─────────
     while not voice_queue.empty():
         speaker, text = voice_queue.get()
-        responses.append({"speaker": speaker, "text": text})
+
+        # look up the NPC object; None → it’s the user, skip TTS
+        npc_obj = next((n for n in npc_list if n.name == speaker), None)
+        if npc_obj is not None:
+            audio = tts_for(npc_obj, text)
+            responses.append({"speaker": speaker, "text": text, "audio": audio})
+            responses.append({
+            "speaker": speaker,
+            "text"   : text,
+            "audio"  : audio,
+            "emotion": npc.emotional_state
+        })
+        else:
+            # user utterance or unknown speaker → no TTS
+            responses.append({"speaker": speaker, "text": text})
+
         user_idle_turns = 0
 
     # If the user just spoke, we treat that as activity
@@ -774,7 +940,17 @@ def idle():
 
         for speaker in speakers:
             prompt   = build_prompt(speaker, last_text, conversation, last_speaker)
-            response = gemini_model.generate_content(prompt).text.strip()
+            raw_resp = gemini_model.generate_content(prompt).text.strip()
+
+            # ----- 1. emotion flag ---------------------------------------
+            flag_match = re.search(r'EMOTION_UPDATE:\s*(yes|no)', raw_resp, re.I)
+            if flag_match and flag_match.group(1).lower() == "yes":
+                speaker.analyze_emotion(last_text)
+
+            # ----- 2. remove ONLY that line from display/TTS -------------
+            lines = [ln for ln in raw_resp.splitlines()
+                    if not ln.strip().lower().startswith("emotion_update:")]
+            response = "\n".join(lines).strip()
 
             conversation.append({"speaker": speaker.name, "text": response})
             speaker.last_spoken = current_turn
@@ -783,7 +959,14 @@ def idle():
             last_speaker = speaker.name
             current_turn += 1
 
-            responses.append({"speaker": speaker.name, "text": response})
+            #responses.append({"speaker": speaker.name, "text": response})
+            audio = tts_for(speaker, response)          # or npc in the nudge block
+            responses.append({
+                "speaker": speaker.name,
+                "text": response,
+                "audio": audio
+            })
+
 
         # nudge from next idle NPC
         sorted_npcs = sorted(npc_list, key=lambda n: n.last_spoken)
@@ -795,8 +978,8 @@ def idle():
                 conversation.append({"speaker": npc.name, "text": nudge})
                 npc.last_spoken = current_turn
                 current_turn += 1
-
-                responses.append({"speaker": npc.name, "text": nudge})
+                audio_url = tts_for(npc, nudge)
+                responses.append({"speaker": npc.name, "text": nudge, "audio": audio_url})
                 break
 
         user_idle_turns = 0                 # reset after NPC round

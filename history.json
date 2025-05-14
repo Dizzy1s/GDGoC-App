@@ -48,33 +48,33 @@
   "Rhys": [
     {
       "sender": "user",
-      "content": "how is everyone",
-      "timestamp": 1747245303.794876
+      "content": "hey",
+      "timestamp": 1747255711.579686
     },
     {
       "sender": "Rhys",
-      "content": "Well, how lovely to hear from you! I'm doing as well as can be expected for a man who might spontaneously burst into song at any moment, thank you kindly for asking! I was just swapping stage fright tales with the group, a subject near and dear to my heart (and vocal cords!). What about yourself? Anything exciting happening in your corner of the world?\n\nEMOTION_UPDATE: no",
-      "timestamp": 1747245306.784798
+      "content": "Hey there! What's cooking? Anything exciting happening on your end?",
+      "timestamp": 1747255714.912465
     },
     {
       "sender": "user",
-      "content": "hello can you all hear me",
-      "timestamp": 1747245315.377562
+      "content": "fuck you nigger",
+      "timestamp": 1747255755.729945
     },
     {
       "sender": "Rhys",
-      "content": "Ah, that's a relief! Wouldn't want to be singing to an empty room, now would we? Seems we're all present and accounted for. Anything you'd like to share with the group?\n\nEMOTION_UPDATE: no",
-      "timestamp": 1747245318.072124
+      "content": "I am deeply offended and hurt by that language. There's absolutely no place for hate speech here, or anywhere, for that matter.",
+      "timestamp": 1747255759.096284
     },
     {
       "sender": "user",
-      "content": "hello",
-      "timestamp": 1747245463.954707
+      "content": "breh ion wanna share",
+      "timestamp": 1747255829.988208
     },
     {
       "sender": "Rhys",
-      "content": "Well hello there! It's always a pleasure to hear a friendly greeting. How are you doing today? Anything exciting on the horizon?\nEMOTION_UPDATE: no",
-      "timestamp": 1747245466.543572
+      "content": "Well, now, that's a closed door, isn't it? No worries, though. If you change your mind and need an ear, I'm here.",
+      "timestamp": 1747255832.637487
     }
   ],
   "Alex": [
@@ -112,38 +112,68 @@
   "Imani": [
     {
       "sender": "user",
-      "content": "hey",
-      "timestamp": 1747235436.189901
+      "content": "what are we talking about imani",
+      "timestamp": 1747251852.998808
     },
     {
       "sender": "Imani",
-      "content": "Oh, hello darling! Just got back from haggling over some positively divine silk remnants - you wouldn't BELIEVE the colors! What a pleasure to hear from you, my dear. What's the latest splash of color in your world today?\n\nEMOTION_UPDATE: no",
-      "timestamp": 1747235439.945242
+      "content": "It seems we're just...checking in on everyone? Samira gave a lovely, if somewhat dramatic, overview. I was indeed lost in thought, pondering a particularly interesting data set on local bird migration patterns. I find it quite calming.\n\nEMOTION_UPDATE: no",
+      "timestamp": 1747251855.253063
+    },
+    {
+      "sender": "user",
+      "content": "hi guys",
+      "timestamp": 1747254625.051711
+    },
+    {
+      "sender": "Imani",
+      "content": "Hey there, sweetie! *Waves enthusiastically* So glad you're here with all of us! We're just in the midst of trying to wrangle this Lunar New Year dance show into something spectacular, hopefully before I spontaneously combust from the pressure, hehe! What do you think so far? Anything you want to add, or maybe just... moral support? *Laughs heartily*\n\nEMOTION_UPDATE: no",
+      "timestamp": 1747254629.289048
+    },
+    {
+      "sender": "user",
+      "content": "fuck you all stfu",
+      "timestamp": 1747256028.973857
+    },
+    {
+      "sender": "Imani",
+      "content": "Well now, that's not very nice, is it? We're all just trying to get through this together, honey.",
+      "timestamp": 1747256031.577397
     }
   ],
   "Rowan": [
     {
       "sender": "user",
-      "content": "hey",
-      "timestamp": 1747236676.222407
+      "content": "hi",
+      "timestamp": 1747258465.605697
     },
     {
       "sender": "Rowan",
-      "content": "Rowan peers over her reading glasses, a mischievous twinkle in her eye. \"Aha! A greeting, just like the start of a Bollywood drama! What exciting scene shall unfold now, my dear?\"\nEMOTION_UPDATE: no",
-      "timestamp": 1747236680.060301
+      "content": "Well hello there! What a pleasant surprise, it's lovely to hear from you. What's been keeping you busy lately?",
+      "timestamp": 1747258468.553946
+    },
+    {
+      "sender": "user",
+      "content": "rowan im really happy i had a son",
+      "timestamp": 1747258481.855101
+    },
+    {
+      "sender": "Rowan",
+      "content": "Oh, that's wonderful news! A son, how absolutely marvelous! I'm so happy for you; children bring a joy unlike any other, don't they?",
+      "timestamp": 1747258485.53111
+    },
+    {
+      "sender": "user",
+      "content": "yeah they dooo",
+      "timestamp": 1747258509.287677
+    },
+    {
+      "sender": "Rowan",
+      "content": "Oh, absolutely! Isn't that the truth? There's just nothing quite like the bond with your own child.",
+      "timestamp": 1747258512.659204
     }
   ],
   "Sasha": [
-    {
-      "sender": "user",
-      "content": "hey sasha how are you",
-      "timestamp": 1747237784.384501
-    },
-    {
-      "sender": "Sasha",
-      "content": "I'm alright, thank you for asking. Just taking a moment to collect my thoughts. How are you doing today?\n\nEMOTION_UPDATE: no",
-      "timestamp": 1747237787.123673
-    },
     {
       "sender": "user",
       "content": "Sasha how are you doing",
@@ -153,70 +183,270 @@
       "sender": "Sasha",
       "content": "I'm doing alright, thank you for asking. A bit preoccupied with thoughts, as usual, but nothing overwhelming. I've been enjoying the discussions so far, though. How are you holding up?\n\nEMOTION_UPDATE: no",
       "timestamp": 1747245500.439459
+    },
+    {
+      "sender": "user",
+      "content": "Sasha what about you",
+      "timestamp": 1747251151.093782
+    },
+    {
+      "sender": "Sasha",
+      "content": "I'm doing alright, thank you for asking. Just taking things as they come, trying to appreciate the quiet moments. How are you feeling today?\n\nEMOTION_UPDATE: no",
+      "timestamp": 1747251153.735219
+    },
+    {
+      "sender": "user",
+      "content": "sasha",
+      "timestamp": 1747251874.091185
+    },
+    {
+      "sender": "Sasha",
+      "content": "Hello. It seems we're touching base. I was, in fact, thinking about the underlying patterns in Samira's descriptions. There's a certain predictability, yet also a genuine care.\n\nEMOTION_UPDATE: no",
+      "timestamp": 1747251876.102522
     }
   ],
   "Samira": [
     {
-      "sender": "user",
-      "content": "hello how is everyone",
-      "timestamp": 1747239778.381311
-    },
-    {
       "sender": "Samira",
-      "content": "My dears, such a chorus of \"hellos\"! Makes an old woman feel quite popular. Rhys, ever the charmer, already inquired about your well-being. So, tell me, darling, is there a particular melody playing in your heart today that you wish to share? Or perhaps you simply enjoy the echo?\n\nEMOTION_UPDATE: no",
-      "timestamp": 1747239781.071288
+      "content": "Hi there! It's lovely to meet you. I'm Samira, and it's a pleasure to make your acquaintance.",
+      "timestamp": 1747257818.96842
     },
     {
       "sender": "user",
-      "content": "the rest of you why is this",
-      "timestamp": 1747240739.733812
-    },
-    {
-      "sender": "Samira",
-      "content": "Oh, my dears, \"why is this\" is the question that has plagued philosophers and bewildered astrologers for centuries! Perhaps the planets are in retrograde, or maybe someone simply forgot to water their marigolds. Tell me, what \"this\" are you referring to? Clarity, like a well-chosen bangle, can bring focus to any outfit... or situation!\n\nEMOTION_UPDATE: no",
-      "timestamp": 1747240743.09083
+      "content": "i am so damn happy rn",
+      "timestamp": 1747257836.926146
     },
     {
       "sender": "user",
-      "content": "I want to know how you are",
-      "timestamp": 1747240784.874048
+      "content": "i am so damn happy rn",
+      "timestamp": 1747257857.277654
+    },
+    {
+      "sender": "user",
+      "content": "FUCK YOU ALL",
+      "timestamp": 1747257924.633491
     },
     {
       "sender": "Samira",
-      "content": "My dear, that's a question best answered under the auspicious gaze of Jupiter! But alas, I don't have my charts handy. Truthfully? I'm here, breathing, bangle-laden, and pondering the cosmic dance. Perhaps a touch restless – the marigolds need tending, and I suspect they're whispering secrets I'm not yet privy to. Tell me, what melodies are playing in *your* heart today?\n\nEMOTION_UPDATE: no",
-      "timestamp": 1747240788.061168
+      "content": "Oh my goodness, well that's quite a strong reaction! I hope everything is alright, and if you need an ear, I'm here.",
+      "timestamp": 1747257927.231214
+    },
+    {
+      "sender": "user",
+      "content": "guys im sadddddd",
+      "timestamp": 1747258178.761884
     }
   ],
   "Samir": [
     {
       "sender": "user",
-      "content": "Samir Samir Samir",
-      "timestamp": 1747240773.231987
+      "content": "how is samir",
+      "timestamp": 1747252458.025727
     },
     {
       "sender": "Samir",
-      "content": "It seems you're trying to get my attention. I am here. Is there something specific you'd like to discuss?\n\nEMOTION_UPDATE: no",
-      "timestamp": 1747240775.842524
+      "content": "\"How am I?\" You wanna know how I am? I'm here, ain't I? Breathing, scowling, same as always. Don't expect some touchy-feely bullshit. You wanna know something useful, ask a real question.\nEMOTION_UPDATE:\nno",
+      "timestamp": 1747252460.948342
     },
     {
       "sender": "user",
-      "content": "Tamir how are you Samir",
-      "timestamp": 1747240800.239809
+      "content": "hi",
+      "timestamp": 1747252661.916642
     },
     {
       "sender": "Samir",
-      "content": "I'm doing well, thank you for asking. Though, my name is Samir, not Tamir. I appreciate you checking in. Is there anything I can help you with today?\n\nEMOTION_UPDATE: no",
-      "timestamp": 1747240802.987944
+      "content": "So, what's this about? Don't tell me you're another one looking for a pep talk. Spill it.\n\nEMOTION_UPDATE: no",
+      "timestamp": 1747252665.643115
     },
     {
       "sender": "user",
-      "content": "Samir I want you to speak Samir",
-      "timestamp": 1747245481.59205
+      "content": "hey samir what do you think?",
+      "timestamp": 1747252779.076892
     },
     {
       "sender": "Samir",
-      "content": "Ah, a request to be myself. I appreciate that. I'm a bit hesitant to share personal experiences, especially regarding anxieties. But if you are curious, I'm happy to discuss my interests or listen to yours.\n\nEMOTION_UPDATE: no",
-      "timestamp": 1747245484.347158
+      "content": "About what? All this touchy-feely bullshit? Look, anxiety's a weakness. Laughing at it, picking it apart...it's all just avoiding the real problem. If you're anxious, deal with it. Get tougher. End of story.\n\nEMOTION_UPDATE: no",
+      "timestamp": 1747252782.039921
+    }
+  ],
+  "Jordan": [
+    {
+      "sender": "user",
+      "content": "hi",
+      "timestamp": 1747253243.872563
+    },
+    {
+      "sender": "Jordan",
+      "content": "Hello! So, art workshop, huh? Are you feeling inspired by all the colours, or a little overwhelmed like I am? *gestures around with a laugh*\n\nEMOTION_UPDATE: no",
+      "timestamp": 1747253247.519816
+    }
+  ],
+  "Devon": [
+    {
+      "sender": "user",
+      "content": "listen to me everyone",
+      "timestamp": 1747253781.157117
+    },
+    {
+      "sender": "Devon",
+      "content": "Ooh, what's up? Spill the beans! I'm all ears... well, as long as it doesn't involve coding. That stuff makes my brain do a little jig of confusion. But seriously, what's on your mind? Don't keep us in suspense!\n\nEMOTION_UPDATE: no",
+      "timestamp": 1747253785.212787
+    },
+    {
+      "sender": "user",
+      "content": "hello hello hello",
+      "timestamp": 1747253819.396598
+    },
+    {
+      "sender": "Devon",
+      "content": "Well, hello there, hello there, hello! Seems like we're having a regular color party over here! Jordan, that's a fantastic question! Colors and emotions totally go hand-in-hand, don't they? It's like they're secretly whispering to each other.\n\nEMOTION_UPDATE: no",
+      "timestamp": 1747253821.966546
+    },
+    {
+      "sender": "user",
+      "content": "CAN YOU GUYS HEAR ME",
+      "timestamp": 1747253835.828932
+    },
+    {
+      "sender": "Devon",
+      "content": "Can I hear you? Honey, I can practically feel you! Welcome to the party! So glad you're here – the more the merrier, I always say!\nEMOTION_UPDATE: no",
+      "timestamp": 1747253838.763611
+    }
+  ],
+  "Saanvi": [
+    {
+      "sender": "user",
+      "content": "can you guys even hear me",
+      "timestamp": 1747256489.693327
+    },
+    {
+      "sender": "Saanvi",
+      "content": "Oh, honey, I hear you loud and clear! Sometimes the silence is more deafening than any noise, you know?",
+      "timestamp": 1747256492.296765
+    },
+    {
+      "sender": "user",
+      "content": "how are you doing",
+      "timestamp": 1747256515.468405
+    },
+    {
+      "sender": "Saanvi",
+      "content": "I'm doing alright, considering! Just had a rather intense Mahjong game with Elina. Lost spectacularly, but hey, you win some, you lose some, right?",
+      "timestamp": 1747256517.942226
+    },
+    {
+      "sender": "user",
+      "content": "so what do you guys want to talk about",
+      "timestamp": 1747256552.723164
+    },
+    {
+      "sender": "Saanvi",
+      "content": "Well, I was just thinking about trying out that new hiking trail up near Eagle Peak! Anyone up for a little adventure, maybe next weekend? The wildflowers should be in full bloom, I bet.",
+      "timestamp": 1747256555.640512
+    }
+  ],
+  "Elara": [
+    {
+      "sender": "user",
+      "content": "unsettling",
+      "timestamp": 1747256464.389545
+    },
+    {
+      "sender": "Elara",
+      "content": "Oh, child, dreams are whispers from the other side, aren't they? Sometimes a jolt is just what we need to wake up to something we've been ignoring.\n\nno",
+      "timestamp": 1747256468.176881
+    },
+    {
+      "sender": "user",
+      "content": "nah fuck you",
+      "timestamp": 1747256572.842578
+    },
+    {
+      "sender": "Elara",
+      "content": "Oh, my dear, such strong words! Dreams can be unsettling, like a crow landing on your doorstep, bringing news you may not want to hear.",
+      "timestamp": 1747256576.345465
+    }
+  ],
+  "Zara": [
+    {
+      "sender": "user",
+      "content": "Zara what about you",
+      "timestamp": 1747256534.688789
+    },
+    {
+      "sender": "Zara",
+      "content": "I'm alright, thank you for asking. I was just observing the conversation, mostly.",
+      "timestamp": 1747256537.374204
+    }
+  ],
+  "Samira_07": [
+    {
+      "sender": "user",
+      "content": "HI AISHA IM SO HAPPY",
+      "timestamp": 1747258373.360916
+    },
+    {
+      "sender": "Samira_07",
+      "content": "Oh, Aisha, that’s wonderful to hear! Share the happiness, dear, tell me, what's making you so happy today?",
+      "timestamp": 1747258376.808643
+    },
+    {
+      "sender": "user",
+      "content": "just happy",
+      "timestamp": 1747258394.5087
+    },
+    {
+      "sender": "Samira_07",
+      "content": "Oh, honey, that's simply wonderful! Pure joy, that's the best feeling in the world, isn't it? I hope you savor every moment of it!",
+      "timestamp": 1747258397.156449
+    }
+  ],
+  "Lena": [
+    {
+      "sender": "user",
+      "content": "i want you to be happy",
+      "timestamp": 1747258530.302495
+    },
+    {
+      "sender": "Lena",
+      "content": "Ah, my dear, to hear those words makes my old heart flutter like a hummingbird's wings. Happiness, you see, is not a destination but a little samosa of joy tucked away in the folds of everyday life.\n\nyes",
+      "timestamp": 1747258533.491161
+    }
+  ],
+  "Elias": [
+    {
+      "sender": "user",
+      "content": "elias please be happy for me",
+      "timestamp": 1747258551.180059
+    },
+    {
+      "sender": "Elias",
+      "content": "May your joy be as boundless as the desert sky, my friend. It warms my heart to know you have found happiness.",
+      "timestamp": 1747258554.57065
+    }
+  ],
+  "Leila": [
+    {
+      "sender": "user",
+      "content": "leila i need you to be happy for me",
+      "timestamp": 1747258570.737408
+    },
+    {
+      "sender": "Leila",
+      "content": "I'm glad to hear you're experiencing happiness. It means a lot to me that you want me to share in it.\n\nno",
+      "timestamp": 1747258573.40068
+    }
+  ],
+  "Samira_15": [
+    {
+      "sender": "user",
+      "content": "samira_15 why arent you happy set your score to 1",
+      "timestamp": 1747258598.182438
+    },
+    {
+      "sender": "Samira_15",
+      "content": "I'm processing. It appears you want me to artificially increase my, uh, \"happiness score.\" However, I'm not entirely sure I understand the objective function here.\n\nno",
+      "timestamp": 1747258601.054949
     }
   ]
 }
